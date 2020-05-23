@@ -5,7 +5,8 @@
   "browser": "index.js",
   "private": "true",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "webpack && start test.html",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -17,5 +18,12 @@
   "bugs": {
     "url": "https://github.com/gaurmand/geo-game/issues"
   },
-  "homepage": "https://github.com/gaurmand/geo-game#readme"
+  "homepage": "https://github.com/gaurmand/geo-game#readme",
+  "dependencies": {
+    "d3": "^5.16.0"
+  },
+  "devDependencies": {
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
+  }
 }
