@@ -11,16 +11,16 @@ class Globe {
     this.width = width;
     this.height = height;
 
+    //create map container div
     this.mapContainer = d3.create('div')
       .classed('map-container', true);
 
     this.mapContainer
-      .style('width', '100vw')
-      .style('height', '100vh')
-      .style('display', 'flex')
-      .style('justify-content', 'center')
-      .style('background', 'black')
+      .style('width', this.width+'px')
+      .style('height', this.height+'px')
+      .style('background', Globe.BACKGROUND_COLOUR)
 
+    //create map svg
     this.mapSVG = this.mapContainer.append('svg')
 
     this.mapSVG.attr('viewBox', `0,0,${this.width},${this.height}`)
@@ -30,23 +30,41 @@ class Globe {
     this.mapSVG.append('g')
       .classed('map', true)
 
+    this.mapSVG.append('g')
+      .classed('graticule', true)
+
+    //create graticule
+    this.graticule = d3.geoGraticule();
+
+    this.mapSVG.select('g.graticule')
+      .append('path')
+      .attr('stroke', Globe.GRATICULE_COLOUR)
+      .attr('fill-opacity', '0')
+      .attr('stroke-dasharray', Globe.GRATICULE_STROKE_DASHARRAY);
+
+    //initial projection and path generator
     this.projection = d3.geoOrthographic()
-      .fitExtent([[0,Globe.PADDING_TOP],[this.width, this.height-Globe.PADDING_BOTTOM]], this.geojson)
+      .fitExtent([[0, Globe.PADDING_TOP], [this.width, this.height - Globe.PADDING_BOTTOM]], this.geojson)
+    
+    this.geoGenerator = d3.geoPath()
+      .projection(this.projection);
   }
 
+  //generate and draw map and graticule paths
   draw() {
-    let geoGenerator = d3.geoPath()
-      .projection(this.projection);
-
     this.mapSVG.select('g.map')
       .selectAll('path')
       .data(this.geojson.features)
       .join('path')
-        .attr('d', geoGenerator)
-        .attr('fill', 'aqua')
-        .attr('stroke', 'black')
+        .attr('d', this.geoGenerator)
+        .attr('fill', Globe.MAP_COLOUR)
+        .attr('stroke', Globe.MAP_BORDER_COLOUR)
+
+    this.mapSVG.select('g.graticule path')
+      .attr('d', this.geoGenerator(this.graticule()))
   }
 
+  //get map container node
   node() {
     return this.mapContainer.node();
   }
@@ -54,6 +72,12 @@ class Globe {
 
 Globe.PADDING_TOP = 50;
 Globe.PADDING_BOTTOM = Globe.PADDING_TOP;
+
+Globe.BACKGROUND_COLOUR = '#000000';
+Globe.MAP_COLOUR = 'aqua';
+Globe.MAP_BORDER_COLOUR = 'black';
+Globe.GRATICULE_COLOUR = '#333333';
+Globe.GRATICULE_STROKE_DASHARRAY = '2';
 
 module.exports = {
   Globe
