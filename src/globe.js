@@ -63,15 +63,35 @@ class Globe {
 
     this.lastMouseMove = 0;
     this.mapContainer.node().onmousemove = (event) => {
-      let mouseMoveDelta = Date.now() - this.lastMouseMove;
-      let isMouseDown = event.buttons == 1;
+      const mouseMoveDelta = Date.now() - this.lastMouseMove;
+      const isMouseDown = event.buttons == 1;
 
       if (mouseMoveDelta > Globe.ROTATION_UPDATE_INTERVAL && isMouseDown) {
-        this.rotateProjection(event);
-        this.draw();
+        let coords1 = this.lastMouseCoords;
+        let coords2 = this.getCoords(event);
+        let newRotation = this.computeRotation(coords1, coords2)
+        this.rotateProjection(newRotation);
+
         this.lastMouseMove = Date.now();
-        this.lastMouseCoords = this.getCoords(event);
+        this.lastMouseCoords = coords2;
       }
+    }
+
+    //interactive scaling
+    this.mapContainer.node().onwheel = (event) => {
+      const currScale = this.projection.scale();
+      const scaleChange = currScale*Globe.SCALE_CHANGE_CONSTANT; //scale change should be propertional to the current scale
+    
+      let newScale = currScale;
+      if(event.deltaY < 0)
+        newScale += scaleChange; //zoom in
+      else
+        newScale -= scaleChange; //zoom out
+
+      newScale = newScale > Globe.MAX_SCALE ? Globe.MAX_SCALE : newScale;
+      newScale = newScale < Globe.MIN_SCALE ? Globe.MIN_SCALE : newScale;
+
+      this.scaleProjection(newScale);
     }
   }
 
@@ -104,10 +124,11 @@ class Globe {
 
   //given two screen coordinates (of a drag gesture), calculate the new projection rotation
   computeRotation(coords1, coords2) {
-    let rotation = this.projection.rotate();
+    const rotation = this.projection.rotate();
+    const scale = this.projection.scale()
 
-    const rotationXFactor = Globe.ROTATION_SPEED / this.width;
-    const rotationYFactor = Globe.ROTATION_SPEED / this.height;
+    const rotationXFactor = (Globe.ROTATION_SCALE_CONSTANT / scale) * (Globe.ROTATION_SPEED / this.width); //change in rotation should be inversely proportional to scale
+    const rotationYFactor = (Globe.ROTATION_SCALE_CONSTANT / scale) * (Globe.ROTATION_SPEED / this.height);
 
     let newRotation = [rotation[0] + rotationXFactor * (coords2.x - coords1.x), rotation[1] + rotationYFactor * (coords1.y - coords2.y), rotation[2]];
 
@@ -121,13 +142,18 @@ class Globe {
 
   }
 
-  //rotate the projection given the mousemove event
-  rotateProjection(event) {
-    let coords2 = this.getCoords(event);
-    let coords1 = this.lastMouseCoords;
-
-    this.projection.rotate(this.computeRotation(coords1, coords2));
+  //set projection rotation [lambda, phi, gamma]
+  rotateProjection(rotation) {
+    this.projection.rotate(rotation);
     this.geoGenerator.projection(this.projection);
+    this.draw();
+  }
+
+  //set projection scale
+  scaleProjection(scale) {
+    this.projection.scale(scale);
+    this.geoGenerator.projection(this.projection);
+    this.draw();
   }
 }
 
@@ -147,6 +173,11 @@ Globe.MIN_LATITUDE = -Globe.MAX_LATITUDE;
 
 Globe.ROTATION_UPDATE_INTERVAL = 40;
 Globe.ROTATION_SPEED = 250;
+
+Globe.MAX_SCALE = 1500;
+Globe.MIN_SCALE = 200;
+Globe.SCALE_CHANGE_CONSTANT = 1/6;
+Globe.ROTATION_SCALE_CONSTANT = 350;
 
 module.exports = {
   Globe
