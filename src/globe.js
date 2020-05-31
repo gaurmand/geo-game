@@ -1,13 +1,8 @@
 const d3 = require("d3");
 
-// const ne_10m_land = require('../data/GeoJSON/ne_10m_land.json');
-// const ne_50m_land = require('../data/GeoJSON/ne_50m_land.json');
-const ne_110m_land = require('../data/GeoJSON/ne_110m_land.json');
-// const ne_110m_admin = require('../data/GeoJSON/ne_110m_admin_0_countries.json');
-
 class Globe {
-  constructor(width, height) {
-    this.geojson = Globe.GEOJSON;
+  constructor(width, height, geojson) {
+    this.geojson = geojson;
     this.width = width;
     this.height = height;
 
@@ -49,50 +44,45 @@ class Globe {
         [this.width, this.height - Globe.PADDING_BOTTOM]
       ], this.geojson);
 
+    this.initialScale = this.projection.scale();
+
     this.geoGenerator = d3.geoPath()
       .projection(this.projection);
 
     //draw map and this.graticule
     this.draw();
 
-    //interactive rotation
-    this.lastMouseCoords = null;
-    this.mapContainer.node().onmousedown = (event) => {
-      this.lastMouseCoords = this.getCoords(event);
-    };
+    //zoom & pan interactivity
+    this.lastZoom = 0;
+    this.lastTransform = {k: 1, x: 0, y: 0};
 
-    this.lastMouseMove = 0;
-    this.mapContainer.node().onmousemove = (event) => {
-      const mouseMoveDelta = Date.now() - this.lastMouseMove;
-      const isMouseDown = event.buttons == 1;
+    this.mapSVG.call(
+      d3.zoom()
+        .scaleExtent([Globe.MIN_SCALE/this.initialScale, Globe.MAX_SCALE/this.initialScale])
+        .on('zoom', () => {
+          if(d3.event.sourceEvent instanceof WheelEvent) {
+            //interactive scaling
 
-      if (mouseMoveDelta > Globe.ROTATION_UPDATE_INTERVAL && isMouseDown) {
-        let coords1 = this.lastMouseCoords;
-        let coords2 = this.getCoords(event);
-        let newRotation = this.computeRotation(coords1, coords2)
-        this.rotateProjection(newRotation);
+            d3.event.transform.x = this.lastTransform.x;
+            d3.event.transform.y = this.lastTransform.y;
 
-        this.lastMouseMove = Date.now();
-        this.lastMouseCoords = coords2;
-      }
-    }
+            let newScale = this.computeScale(d3.event.transform);
+            this.scaleProjection(newScale);
+          } else {
+            //interactive rotation
 
-    //interactive scaling
-    this.mapContainer.node().onwheel = (event) => {
-      const currScale = this.projection.scale();
-      const scaleChange = currScale*Globe.SCALE_CHANGE_CONSTANT; //scale change should be propertional to the current scale
-    
-      let newScale = currScale;
-      if(event.deltaY < 0)
-        newScale += scaleChange; //zoom in
-      else
-        newScale -= scaleChange; //zoom out
+            let delta = Date.now() - this.lastZoom
+            if (delta < Globe.ROTATION_UPDATE_INTERVAL)
+              return;
+  
+            let rotation = this.computeRotation(d3.event.transform, this.lastTransform);
+            this.rotateProjection(rotation);
 
-      newScale = newScale > Globe.MAX_SCALE ? Globe.MAX_SCALE : newScale;
-      newScale = newScale < Globe.MIN_SCALE ? Globe.MIN_SCALE : newScale;
-
-      this.scaleProjection(newScale);
-    }
+            this.lastZoom  = Date.now();
+            this.lastTransform = d3.event.transform;
+          }
+        })
+    );
   }
 
   //generate and draw map and graticule paths
@@ -123,23 +113,26 @@ class Globe {
   }
 
   //given two screen coordinates (of a drag gesture), calculate the new projection rotation
-  computeRotation(coords1, coords2) {
+  computeRotation(transform, lastTransform) {
     const rotation = this.projection.rotate();
-    const scale = this.projection.scale()
+    const scale = this.projection.scale();
+    const rotationFactor = (Globe.ROTATION_SCALE_CONSTANT / scale); //change in rotation should be inversely proportional to scale
 
-    const rotationXFactor = (Globe.ROTATION_SCALE_CONSTANT / scale) * (Globe.ROTATION_SPEED / this.width); //change in rotation should be inversely proportional to scale
-    const rotationYFactor = (Globe.ROTATION_SCALE_CONSTANT / scale) * (Globe.ROTATION_SPEED / this.height);
+    let deltaX = transform.x - lastTransform.x;
+    let deltaY = transform.y - lastTransform.y;
 
-    let newRotation = [rotation[0] + rotationXFactor * (coords2.x - coords1.x), rotation[1] + rotationYFactor * (coords1.y - coords2.y), rotation[2]];
+    let λ = rotation[0] + deltaX*rotationFactor;
+    let φ = rotation[1] + -deltaY*rotationFactor;
+    let γ = rotation[2];
 
-    //limit phi angle (prevents earth from going upside down)
-    if (newRotation[1] > Globe.MAX_LATITUDE)
-      newRotation[1] = Globe.MAX_LATITUDE;
-    else if (newRotation[1] < Globe.MIN_LATITUDE)
-      newRotation[1] = Globe.MIN_LATITUDE;
+    φ = φ > Globe.MAX_LATITUDE ? Globe.MAX_LATITUDE : φ;
+    φ = φ < Globe.MIN_LATITUDE ? Globe.MIN_LATITUDE : φ;
 
-    return newRotation;
+    return [λ, φ, γ];
+  }
 
+  computeScale(transform) {
+    return this.initialScale*transform.k;
   }
 
   //set projection rotation [lambda, phi, gamma]
@@ -157,8 +150,6 @@ class Globe {
   }
 }
 
-Globe.GEOJSON = ne_110m_land;
-
 Globe.PADDING_TOP = 50;
 Globe.PADDING_BOTTOM = Globe.PADDING_TOP;
 
@@ -171,13 +162,13 @@ Globe.GRATICULE_STROKE_DASHARRAY = '2';
 Globe.MAX_LATITUDE = 90;
 Globe.MIN_LATITUDE = -Globe.MAX_LATITUDE;
 
-Globe.ROTATION_UPDATE_INTERVAL = 40;
+Globe.ROTATION_UPDATE_INTERVAL = 35;
 Globe.ROTATION_SPEED = 250;
 
 Globe.MAX_SCALE = 1500;
 Globe.MIN_SCALE = 200;
 Globe.SCALE_CHANGE_CONSTANT = 1/6;
-Globe.ROTATION_SCALE_CONSTANT = 350;
+Globe.ROTATION_SCALE_CONSTANT = 90;
 
 module.exports = {
   Globe
