@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/gaurmand/geo-game#readme",
   "dependencies": {
-    "d3": "^5.16.0"
+    "d3": "^5.16.0",
+    "d3-geo-projection": "^2.9.0"
   },
   "devDependencies": {
     "webpack": "^4.43.0",
