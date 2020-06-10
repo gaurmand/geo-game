@@ -77,44 +77,59 @@ class Globe {
     this.draw();
 
     //zoom & pan interactivity
+    this.interaction = true;
     this.lastZoom = 0;
     this.lastTransform = {k: 1, x: 0, y: 0};
     this.isZooming = false;
 
-    this.mapSVG.call(
-      d3.zoom()
-        .scaleExtent([Globe.MIN_SCALE/this.initialScale, Globe.MAX_SCALE/this.initialScale])
-        .on('zoom', () => {
-          if(d3.event.sourceEvent instanceof WheelEvent) {
-            //interactive scaling
+    this.zoom = d3.zoom()
+      .scaleExtent([Globe.MIN_SCALE/this.initialScale, Globe.MAX_SCALE/this.initialScale])
+      .on('zoom', () => {
+        if(d3.event.sourceEvent instanceof WheelEvent) {
+          //interactive scaling
 
-            d3.event.transform.x = this.lastTransform.x;
-            d3.event.transform.y = this.lastTransform.y;
+          d3.event.transform.x = this.lastTransform.x;
+          d3.event.transform.y = this.lastTransform.y;
 
-            let newScale = this.computeScale(d3.event.transform);
-            this.scaleProjection(newScale);
-          } else {
-            //interactive rotation
+          let newScale = this.computeScale(d3.event.transform);
+          this.scaleProjection(newScale);
+        } else {
+          //interactive rotation
 
-            let delta = Date.now() - this.lastZoom
-            if (delta < Globe.ROTATION_UPDATE_INTERVAL)
-              return;
-  
-            let rotation = this.computeRotation(d3.event.transform, this.lastTransform);
-            this.rotateProjection(rotation);
+          let delta = Date.now() - this.lastZoom
+          if (delta < Globe.ROTATION_UPDATE_INTERVAL)
+            return;
 
-            this.lastZoom  = Date.now();
-            this.lastTransform = d3.event.transform;
-          }
-        })
-        .on('start', () => {
-          this.isZooming = true;
-        })
-        .on('end', () => {
-          this.isZooming = false;
-          this.draw();
-        })
-    );
+          let rotation = this.computeRotation(d3.event.transform, this.lastTransform);
+          this.rotateProjection(rotation);
+
+          this.lastZoom  = Date.now();
+          this.lastTransform = d3.event.transform;
+        }
+      })
+      .on('start', () => {
+        this.isZooming = true;
+
+        //stop auto rotating on mousedown
+        if(this.isAutoRotating())
+          this.stopAutoRotate();
+
+      })
+      .on('end', () => {
+        this.isZooming = false;
+
+        //draw after zooming to show high resolution map data
+        this.draw();
+      });
+
+    //set zoom behaviour (disable double click zooming)
+    this.mapSVG.call(this.zoom)
+      .on('dblclick.zoom', null);
+
+    //make globe auto rotate on start
+    this.autoRotating = true;
+    this.autoRotateTimer = null;
+    this.startAutoRotate();
   }
 
   //generate and draw map and graticule paths
@@ -161,14 +176,6 @@ class Globe {
   //get map container node
   node() {
     return this.mapContainer.node();
-  }
-
-  //given a MouseEvent object, return the cursor's screen coordinates
-  getCoords(event) {
-    return {
-      x: event.clientX,
-      y: event.clientY
-    };
   }
 
   //given two screen coordinates (of a drag gesture), calculate the new projection rotation
@@ -224,6 +231,43 @@ class Globe {
 
     return {countries, rivers, lakes};
   }
+
+  isInteractionEnabled() {
+    return this.interaction;
+  }
+
+  disableInteraction() {
+    this.interaction = true;
+    this.mapSVG.on('.zoom', null);
+  }
+
+  enableInteraction() {
+    this.interaction = false;
+    this.mapSVG.call(this.zoom)
+      .on('dblclick.zoom', null);
+  }
+
+  isAutoRotating() {
+    return this.autoRotating;
+  }
+
+  startAutoRotate(ccw = false) {
+    this.autoRotating = true;
+    this.autoRotateTimer = d3.interval(() => {
+      const rotation = this.projection.rotate();
+      let newRotation = rotation;
+
+      let deltaλ = ccw ? -0.5 : 0.5;
+      newRotation[0] += deltaλ;
+      this.rotateProjection(newRotation);
+    }, 30);
+  }
+
+  stopAutoRotate() {
+    this.autoRotating = false;
+    this.autoRotateTimer.stop()
+  }
+
 }
 
 //MAP CONSANTS
