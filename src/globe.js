@@ -56,6 +56,11 @@ class Globe {
       .attr('stroke-width', Globe.RIVER_STROKE_WIDTH)
       .attr('pointer-events', 'none');
 
+    this.points = [];
+    this.mapSVG.append('g')
+      .classed('points', true)
+      .attr('fill', 'red');
+
     //create graticule
     this.graticule = d3.geoGraticule();
 
@@ -137,30 +142,11 @@ class Globe {
     let start = Date.now();
 
     let data = this.getData();
-
-    this.mapSVG.select('g.countries')
-      .selectAll('path')
-      .data(data.countries.features)
-      .join('path')
-      .attr('d', this.geoGenerator)
-      .on('mousedown', d => {
-        console.log(d.properties.NAME);
-      });
-
-    this.mapSVG.select('g.lakes')
-      .selectAll('path')
-      .data(data.lakes.features)
-      .join('path')
-      .attr('d', this.geoGenerator);
-
-    this.mapSVG.select('g.rivers')
-      .selectAll('path')
-      .data(data.rivers.features)
-      .join('path')
-      .attr('d', this.geoGenerator);
-
-    this.mapSVG.select('g.graticule path')
-      .attr('d', this.geoGenerator(this.graticule()));
+    this.drawCountries(data.countries);
+    this.drawPoints(this.points);
+    this.drawGraticule();
+    this.drawRivers(data.rivers);
+    this.drawLakes(data.lakes);
 
     let delta = Date.now() - start;
     this.drawTime += delta;
@@ -171,6 +157,54 @@ class Globe {
       console.log('draw time: ' + delta);
       console.log('avg draw time: ' + avgDrawTime);
     }
+  }
+
+  drawCountries(countries) {
+    this.mapSVG.select('g.countries')
+      .selectAll('path')
+      .data(countries.features)
+      .join('path')
+      .attr('d', this.geoGenerator)
+      .on('click', d => {
+        console.log(d.properties.NAME);
+        let lonlat = this.projection.invert([event.clientX, event.clientY]);
+        console.log(lonlat);
+        this.addPoint(lonlat);
+      });
+  }
+
+  drawPoints(points) {
+    this.mapSVG.select('g.points')
+    .selectAll('circle')
+    .data(points)
+    .join('circle')
+      .attr('cx', city => this.projectPoint(city)[0])
+      .attr('cy', city => this.projectPoint(city)[1])
+      .attr('r', '5')
+      .on('click', d => {
+        this.removePoint(d);
+      });
+  }
+
+  drawGraticule() {
+    this.mapSVG.select('g.graticule path')
+      .attr('d', this.geoGenerator(this.graticule()));
+  }
+
+  drawRivers(rivers) {
+    this.mapSVG.select('g.rivers')
+      .selectAll('path')
+      .data(rivers.features)
+      .join('path')
+      .attr('d', this.geoGenerator);
+  }
+
+  drawLakes(lakes) {
+    this.mapSVG.select('g.lakes')
+      .selectAll('path')
+      .data(lakes.features)
+      .join('path')
+      .attr('d', this.geoGenerator);
   }
 
   //get map container node
@@ -268,6 +302,91 @@ class Globe {
     this.autoRotateTimer.stop()
   }
 
+  addPoint(point) {
+    this.points.push(point);
+    this.drawPoints(this.points);
+  }
+
+  removePoint(point) {
+    let i = this.points.indexOf(point);
+    if(i == -1)
+      throw 'Point not found';
+    this.points.splice(i, 1);
+    this.drawPoints(this.points);
+  }
+
+  getProjectionCenter() {
+    return this.projection.invert([this.width/2, this.height/2]);
+  }
+
+  //if point is visible on globe, project normally
+  //else project the point on the horizon closest to the actual point
+  projectPoint(lonlat) {
+    if(!this.isPointVisible(lonlat))
+      lonlat = this.getHorizonPoint(lonlat);
+    return this.projection(lonlat);
+  }
+
+  //checks if the great circle distance between the projection center and the point is greater than pi/2 (over the horizon)
+  isPointVisible(lonlat) {
+    const center = this.getProjectionCenter();
+    return d3.geoDistance(center, lonlat) <= Math.PI/2;
+  }
+
+  //gets the point on the horizon along the great circle route from the projection center to the specified point
+  getHorizonPoint(p) {
+    const center = this.getProjectionCenter();
+    return this.getWaypoint(center, p, Math.PI/2);
+  }
+
+  //computes the waypoint p along the great circle route from p1 to p2 that has a central angle of σ1n with p1
+  getWaypoint(p1, p2, σ1n) {
+    const λ1 = p1[0] * Math.PI / 180;
+    const λ2 = p2[0] * Math.PI / 180;
+
+    const φ1 = p1[1] * Math.PI / 180;
+    const φ2 = p2[1] * Math.PI / 180;
+
+    let λ12 = λ2 - λ1;
+    λ12 = λ12 > Math.PI ? λ12 - 2*Math.PI : λ12;
+    λ12 = λ12 < -Math.PI ? λ12 + 2*Math.PI : λ12;
+
+    //compute course α1
+    const α1_n = Math.cos(φ2) * Math.sin(λ12);
+    const α1_d = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(λ12);
+    const α1 = Math.atan2(α1_n, α1_d);
+
+    //extrapolate great circle p1-p2 to point A on equator
+    const α0_n = Math.sin(α1) * Math.cos(φ1);
+    const α0_d = Math.sqrt(Math.pow(Math.cos(α1), 2) + Math.pow(Math.sin(α1), 2) * Math.pow(Math.sin(φ1), 2) );
+    const α0 = Math.atan2(α0_n, α0_d);
+
+    const σ01_n = Math.tan(φ1);
+    const σ01_d = Math.cos(α1);
+    const σ01 = Math.atan2(σ01_n, σ01_d);
+
+    const λ01_n = Math.sin(α0) * Math.sin(σ01);
+    const λ01_d = Math.cos(σ01);
+    const λ01 = Math.atan2(λ01_n, λ01_d);
+    let λ0 = λ1 - λ01;
+    λ0 = λ0 > Math.PI ? λ0 - 2*Math.PI : λ0;
+    λ0 = λ0 < -Math.PI ? λ0 + 2*Math.PI : λ0;
+
+    //compute waypoint p on great circle p1-p2 that is distance σ from p1
+    const σ = σ01 + σ1n;
+    const φ_n = Math.cos(α0) * Math.sin(σ);
+    const φ_d = Math.sqrt(Math.pow(Math.cos(σ), 2) + Math.pow(Math.sin(α0), 2) * Math.pow(Math.sin(σ), 2) );
+    const φ = Math.atan2(φ_n, φ_d);
+
+    const λ0n_n = Math.sin(α0) * Math.sin(σ);
+    const λ0n_d = Math.cos(σ);
+    const λ0n = Math.atan2(λ0n_n, λ0n_d);
+    let λ = λ0n + λ0;
+    λ = λ > Math.PI ? λ - 2*Math.PI : λ;
+    λ = λ < -Math.PI ? λ + 2*Math.PI : λ;
+
+    return [λ*180/Math.PI, φ*180/Math.PI];
+  }
 }
 
 //MAP CONSANTS
