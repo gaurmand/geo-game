@@ -24,13 +24,15 @@ class Globe {
       .style('background', Globe.DEFAULT_COLOUR.BACKGROUND);
 
     //create map svg
-    this.mapSVG = this.mapContainer.append('svg');
+    this.svg = this.mapContainer.append('svg');
+    this.map = this.svg.append('g')
+      .classed('map', true)
 
-    this.mapSVG.attr('viewBox', `0,0,${this.width},${this.height}`)
+    this.svg.attr('viewBox', `0,0,${this.width},${this.height}`)
       .attr('width', `${this.width}`)
       .attr('height', `${this.height}`);
 
-    this.mapSVG.append('g')
+    this.map.append('g')
       .classed('graticule', true)
       .attr('stroke', Globe.DEFAULT_COLOUR.GRATICULE)
       .attr('fill-opacity', '0')
@@ -38,17 +40,17 @@ class Globe {
       .attr('stroke-width', Globe.GRATICULE_STROKE_WIDTH)
       .append('path');
 
-    this.mapSVG.append('g')
+    this.map.append('g')
       .classed('countries', true)
       .attr('fill', Globe.DEFAULT_COLOUR.COUNTRY_FILL)
       .attr('stroke', Globe.DEFAULT_COLOUR.COUNTRY_STROKE)
       .attr('stroke-width', Globe.COUNTRY_STOKE_WIDTH);
 
-    this.mapSVG.append('g')
+    this.map.append('g')
       .classed('lakes', true)
       .attr('fill', Globe.DEFAULT_COLOUR.LAKE);
 
-    this.mapSVG.append('g')
+    this.map.append('g')
       .classed('rivers', true)
       .attr('fill-opacity', '0')
       .attr('stroke', Globe.DEFAULT_COLOUR.RIVER)
@@ -57,7 +59,7 @@ class Globe {
       .attr('pointer-events', 'none');
 
     this.points = [];
-    this.mapSVG.append('g')
+    this.svg.append('g')
       .classed('points', true)
       .attr('fill', 'red');
 
@@ -90,6 +92,10 @@ class Globe {
     this.zoom = d3.zoom()
       .scaleExtent([Globe.MIN_SCALE/this.initialScale, Globe.MAX_SCALE/this.initialScale])
       .on('zoom', () => {
+        let delta = Date.now() - this.lastZoom
+        if (delta < Globe.ROTATION_UPDATE_INTERVAL)
+          return;
+
         if(d3.event.sourceEvent instanceof WheelEvent) {
           //interactive scaling
 
@@ -100,11 +106,6 @@ class Globe {
           this.scaleProjection(newScale);
         } else {
           //interactive rotation
-
-          let delta = Date.now() - this.lastZoom
-          if (delta < Globe.ROTATION_UPDATE_INTERVAL)
-            return;
-
           let rotation = this.computeRotation(d3.event.transform, this.lastTransform);
           this.rotateProjection(rotation);
 
@@ -128,7 +129,7 @@ class Globe {
       });
 
     //set zoom behaviour (disable double click zooming)
-    this.mapSVG.call(this.zoom)
+    this.svg.call(this.zoom)
       .on('dblclick.zoom', null);
 
     //make globe auto rotate on start
@@ -160,7 +161,7 @@ class Globe {
   }
 
   drawCountries(countries) {
-    this.mapSVG.select('g.countries')
+    this.map.select('g.countries')
       .selectAll('path')
       .data(countries.features)
       .join('path')
@@ -174,7 +175,7 @@ class Globe {
   }
 
   drawPoints(points) {
-    this.mapSVG.select('g.points')
+    this.svg.select('g.points')
     .selectAll('circle')
     .data(points)
     .join('circle')
@@ -187,12 +188,12 @@ class Globe {
   }
 
   drawGraticule() {
-    this.mapSVG.select('g.graticule path')
+    this.map.select('g.graticule path')
       .attr('d', this.geoGenerator(this.graticule()));
   }
 
   drawRivers(rivers) {
-    this.mapSVG.select('g.rivers')
+    this.map.select('g.rivers')
       .selectAll('path')
       .data(rivers.features)
       .join('path')
@@ -200,7 +201,7 @@ class Globe {
   }
 
   drawLakes(lakes) {
-    this.mapSVG.select('g.lakes')
+    this.map.select('g.lakes')
       .selectAll('path')
       .data(lakes.features)
       .join('path')
@@ -272,12 +273,12 @@ class Globe {
 
   disableInteraction() {
     this.interaction = true;
-    this.mapSVG.on('.zoom', null);
+    this.svg.on('.zoom', null);
   }
 
   enableInteraction() {
     this.interaction = false;
-    this.mapSVG.call(this.zoom)
+    this.svg.call(this.zoom)
       .on('dblclick.zoom', null);
   }
 
