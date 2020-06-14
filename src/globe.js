@@ -1,12 +1,12 @@
 const d3 = require("d3");
 
 const ne_50m_admin_0_countries = require('../data/GeoJSON/ne_50m_admin_0_countries.json');
-const ne_110m_admin_0_countries = require('../data/GeoJSON/ne_110m_admin_0_countries.json');
+const ne_110m_admin_0_countries = require('../data/GeoJSON/ne_110m_admin_0_countries_58.json');
 
-const ne_110m_rivers_lake_centerlines = require('../data/GeoJSON/ne_110m_rivers_lake_centerlines.json');
+const ne_110m_rivers_lake_centerlines = require('../data/GeoJSON/ne_110m_rivers_lake_centerlines_35.json');
 const ne_50m_rivers_lake_centerlines = require('../data/GeoJSON/ne_50m_rivers_lake_centerlines.json');
 
-const ne_110m_lakes = require('../data/GeoJSON/ne_110m_lakes.json');
+const ne_110m_lakes = require('../data/GeoJSON/ne_110m_lakes_47.json');
 const ne_50m_lakes = require('../data/GeoJSON/ne_50m_lakes.json');
 
 class Globe {
@@ -153,7 +153,7 @@ class Globe {
     this.numDraws++;
     let avgDrawTime = this.drawTime/this.numDraws;
 
-    if(Globe.debug) {
+    if(Globe.DEBUG) {
       console.log('draw time: ' + delta);
       console.log('avg draw time: ' + avgDrawTime);
     }
@@ -253,7 +253,7 @@ class Globe {
     let countries, rivers, lakes;
     const scale = this.projection.scale();
 
-    if(this.isZooming || scale < 2000) {
+    if(this.isZooming || scale < Globe.SCALE_THRESHOLD) {
       countries = ne_110m_admin_0_countries;
       rivers = ne_110m_rivers_lake_centerlines;
       lakes = ne_110m_lakes;
@@ -393,7 +393,7 @@ class Globe {
 Globe.PADDING_TOP = 50;
 Globe.PADDING_BOTTOM = Globe.PADDING_TOP;
 
-Globe.MAX_LATITUDE = 90;
+Globe.MAX_LATITUDE = 66.5;
 Globe.MIN_LATITUDE = -Globe.MAX_LATITUDE;
 
 Globe.DEBUG = true;
@@ -417,10 +417,12 @@ Globe.RIVER_STROKE_WIDTH = '0.8';
 Globe.COUNTRY_STOKE_WIDTH = '1.1';
 
 //INTERACTION CONSTANTS
-Globe.MAX_SCALE = 4000;
+Globe.MAX_SCALE = 3500;
 Globe.MIN_SCALE = 300;
 
-Globe.ROTATION_UPDATE_INTERVAL = 35;
+Globe.SCALE_THRESHOLD = 1000;
+
+Globe.ROTATION_UPDATE_INTERVAL = 20;
 Globe.ROTATION_SPEED = 250;
 
 Globe.SCALE_CHANGE_CONSTANT = 1/6;
