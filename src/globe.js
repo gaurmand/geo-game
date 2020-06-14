@@ -92,10 +92,6 @@ class Globe {
     this.zoom = d3.zoom()
       .scaleExtent([Globe.MIN_SCALE/this.initialScale, Globe.MAX_SCALE/this.initialScale])
       .on('zoom', () => {
-        let delta = Date.now() - this.lastZoom
-        if (delta < Globe.ROTATION_UPDATE_INTERVAL)
-          return;
-
         if(d3.event.sourceEvent instanceof WheelEvent) {
           //interactive scaling
 
@@ -106,6 +102,11 @@ class Globe {
           this.scaleProjection(newScale);
         } else {
           //interactive rotation
+          
+          let delta = Date.now() - this.lastZoom
+          if (delta < Globe.ROTATION_UPDATE_INTERVAL)
+            return;
+
           let rotation = this.computeRotation(d3.event.transform, this.lastTransform);
           this.rotateProjection(rotation);
 
