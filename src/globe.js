@@ -1,13 +1,8 @@
 const d3 = require("d3");
 
-const ne_50m_admin_0_countries = require('../data/GeoJSON/ne_50m_admin_0_countries.json');
-const ne_110m_admin_0_countries = require('../data/GeoJSON/ne_110m_admin_0_countries_58.json');
-
-const ne_110m_rivers_lake_centerlines = require('../data/GeoJSON/ne_110m_rivers_lake_centerlines_35.json');
-const ne_50m_rivers_lake_centerlines = require('../data/GeoJSON/ne_50m_rivers_lake_centerlines.json');
-
-const ne_110m_lakes = require('../data/GeoJSON/ne_110m_lakes_47.json');
-const ne_50m_lakes = require('../data/GeoJSON/ne_50m_lakes.json');
+const {
+  GeoData
+} = require('./geodata');
 
 class Globe {
   constructor(width, height) {
@@ -71,7 +66,7 @@ class Globe {
       .fitExtent([
         [0, Globe.PADDING_TOP],
         [this.width, this.height - Globe.PADDING_BOTTOM]
-      ], ne_110m_admin_0_countries)
+      ], GeoData.COUNTRIES_110M)
 
     this.initialScale = this.projection.scale();
 
@@ -256,13 +251,13 @@ class Globe {
     const scale = this.projection.scale();
 
     if(this.isZooming || scale < Globe.SCALE_THRESHOLD) {
-      countries = ne_110m_admin_0_countries;
-      rivers = ne_110m_rivers_lake_centerlines;
-      lakes = ne_110m_lakes;
+      countries = GeoData.COUNTRIES_110M;
+      rivers = GeoData.RIVERS_110M;
+      lakes = GeoData.LAKES_110M;
     } else {
-      countries = ne_50m_admin_0_countries;
-      rivers = ne_50m_rivers_lake_centerlines;
-      lakes = ne_50m_lakes;
+      countries = GeoData.COUNTRIES_50M;
+      rivers = GeoData.RIVERS_50M;
+      lakes = GeoData.LAKES_50M;
     }
 
     return {countries, rivers, lakes};
@@ -392,13 +387,13 @@ class Globe {
 }
 
 //MAP CONSANTS
-Globe.PADDING_TOP = 50;
-Globe.PADDING_BOTTOM = Globe.PADDING_TOP;
+Globe.PADDING_TOP = 150;
+Globe.PADDING_BOTTOM = 50;
 
 Globe.MAX_LATITUDE = 66.5;
 Globe.MIN_LATITUDE = -Globe.MAX_LATITUDE;
 
-Globe.DEBUG = true;
+Globe.DEBUG = false;
 
 //MAP DEFAULT STYLE
 Globe.DEFAULT_COLOUR = {
