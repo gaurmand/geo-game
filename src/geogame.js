@@ -1,6 +1,6 @@
 const {
-  Globe
-} = require('./globe');
+  ModifiableGlobe
+} = require('./modifiableglobe');
 
 const d3 = require("d3");
 
@@ -64,7 +64,9 @@ class Overlay {
 
 class GeoGame {
   constructor(geoData) {
-    this.globe = new Globe(window.innerWidth, window.innerHeight);
+    this.globe = new ModifiableGlobe(window.innerWidth, window.innerHeight);
+    this.globe.draw();
+
     this.geoData = geoData;
     this.overlay = new Overlay();
   }
