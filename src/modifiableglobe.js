@@ -12,6 +12,9 @@ class ModifiableGlobe extends InteractiveGlobe {
     this.svg.append('g')
       .classed('points', true)
       .attr('fill', 'red');
+
+    this.setPointMode();
+    this.setHighlightMode();
   }
 
   //generate and draw map and graticule paths
@@ -29,6 +32,8 @@ class ModifiableGlobe extends InteractiveGlobe {
   }
 
   drawCountries(countries) {
+    let globe = this;
+
     this.map.select('g.countries')
       .selectAll('path')
       .data(countries.features)
@@ -36,9 +41,11 @@ class ModifiableGlobe extends InteractiveGlobe {
       .attr('d', this.geoGenerator)
       .on('click', d => {
         console.log(d.properties.NAME);
-        let lonlat = this.projection.invert([event.clientX, event.clientY]);
-        console.log(lonlat);
-        this.addPoint(lonlat);
+
+        if(this.pointMode) {
+          let lonlat = this.projection.invert([event.clientX, event.clientY]);
+          this.addPoint(lonlat);
+        }
       });
   }
 
@@ -47,22 +54,23 @@ class ModifiableGlobe extends InteractiveGlobe {
       .selectAll('circle')
       .data(points)
       .join('circle')
-      .attr('cx', city => this.projectPoint(city)[0])
-      .attr('cy', city => this.projectPoint(city)[1])
+      .attr('cx', point => this.getPointCoords(point)[0])
+      .attr('cy', point => this.getPointCoords(point)[1])
       .attr('r', '5')
       .on('click', d => {
-        this.removePoint(d);
+        if(this.pointMode) 
+          this.removePoint(d);
       });
   }
 
-  addPoint(point) {
-    this.points.push(point);
+  addPoint(lonlat, type = ModifiableGlobe.POINT_TYPE.VISIBLE_ON_HORIZON) {
+    this.points.push({lonlat, type});
     this.drawPoints(this.points);
   }
 
-  removePoint(point) {
-    let i = this.points.indexOf(point);
-    if (i == -1)
+  removePoint(targetPoint) {
+    let i = this.points.findIndex(point => point.lonlat[0] == targetPoint.lonlat[0] && point.lonlat[1] == targetPoint.lonlat[1]);
+    if (i < 0)
       throw 'Point not found';
     this.points.splice(i, 1);
     this.drawPoints(this.points);
@@ -74,9 +82,21 @@ class ModifiableGlobe extends InteractiveGlobe {
 
   //if point is visible on globe, project normally
   //else project the point on the horizon closest to the actual point
-  projectPoint(lonlat) {
-    if (!this.isPointVisible(lonlat))
-      lonlat = this.getHorizonPoint(lonlat);
+  getPointCoords(point) {
+    let lonlat = point.lonlat;
+
+    switch (point.type) {
+      case ModifiableGlobe.POINT_TYPE.ALWAYS_VISIBLE:
+        break;
+      case ModifiableGlobe.POINT_TYPE.INVISIBLE_BEYOND_HORIZON:
+        if (!this.isPointVisible(lonlat))
+          return [-10,-10];
+        break;
+      case ModifiableGlobe.POINT_TYPE.VISIBLE_ON_HORIZON:
+        if (!this.isPointVisible(lonlat))
+          lonlat = this.getHorizonPoint(lonlat);
+        break;
+    }
     return this.projection(lonlat);
   }
 
@@ -141,6 +161,30 @@ class ModifiableGlobe extends InteractiveGlobe {
 
     return [λ * 180 / Math.PI, φ * 180 / Math.PI];
   }
+
+  setHighlightMode() {
+    this.highlightMode = true;
+    this.map.select('g.countries').classed('highlight', true);
+  }
+
+  unsetHighlightMode() {
+    this.highlightMode = false;
+    this.map.select('g.countries').classed('highlight', false);
+  }
+
+  setPointMode() {
+    this.pointMode = true;
+  }
+
+  unsetPointMode() {
+    this.pointMode = false;
+  }
+}
+
+ModifiableGlobe.POINT_TYPE = {
+  ALWAYS_VISIBLE: 1,
+  INVISIBLE_BEYOND_HORIZON: 2,
+  VISIBLE_ON_HORIZON: 3
 }
 
 module.exports = {
