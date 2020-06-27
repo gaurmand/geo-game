@@ -15,5 +15,4 @@ console.log(geo.getCountry(77))
 
 window.onload = () => {
   geoGame.append();
-  geoGame.startGame();
 };

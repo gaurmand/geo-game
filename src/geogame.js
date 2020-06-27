@@ -5,13 +5,15 @@ const {
 const d3 = require("d3");
 
 class Overlay {
-  constructor() {
+  constructor(startCb) {
     this.overlayNode = d3.create('div')
       .classed('overlay', true);
 
-    this.overlayNode.append('div')
-      .classed('info-bar', true)
-      .append('div')
+    this.infoBar = this.overlayNode.append('div')
+    .classed('info-bar', true)
+    .classed('hidden', true)
+
+    this.infoBar.append('div')
       .classed('info-container', true);
 
     this.overlayNode.select('.info-container').append('div')
@@ -21,6 +23,7 @@ class Overlay {
       .text(GeoGame.ROUND_LABEL)
       .classed('label', true);
 
+    //top bar
     this.round = this.overlayNode.select('.round-container').append('div')
       .classed('round', true);
 
@@ -43,6 +46,50 @@ class Overlay {
 
     this.score = this.overlayNode.select('.score-container').append('div')
       .classed('score', true);
+
+    //start screen
+    this.startContainer = this.overlayNode.append('div')
+      .classed('start-container', true)
+
+    this.title = this.startContainer.append('div')
+      .classed('title', true)
+      .text('Very Cool Geography Game')
+
+    this.startNode = this.startContainer.append('div')
+      .classed('start', true)
+
+    this.startNode.append('button')
+      .text('Start Game')
+      .classed('start-game start-button', true)
+      .on('mouseup', startCb)
+
+    this.startNode.append('button')
+      .text('Set Up Game')
+      .classed('set-up-game start-button', true)
+
+    this.startNode.append('button')
+      .text('Options')
+      .classed('options start-button', true)
+
+    this.startNode.append('button')
+      .text('About')
+      .classed('about start-button', true)
+  }
+
+  showStartScreen() {
+    this.startContainer.classed('hidden', false);
+  }
+
+  hideStartScreen() {
+    this.startContainer.classed('hidden', true);
+  }
+
+  showInfoBar() {
+    this.infoBar.classed('hidden', false);
+  }
+
+  hideInfoBar() {
+    this.infoBar.classed('hidden', true);
   }
 
   setQuestion(text) {
@@ -68,7 +115,12 @@ class GeoGame {
     this.globe.draw();
 
     this.geoData = geoData;
-    this.overlay = new Overlay();
+    this.overlay = new Overlay(() => {
+      this.globe.enableInteraction();
+      this.overlay.hideStartScreen();
+      this.overlay.showInfoBar();
+      this.startGame();
+    });
 
     this.questions = [];
     this.questionIndex = 0;
