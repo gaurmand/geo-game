@@ -132,6 +132,11 @@ class Globe {
     }
   }
 
+  clearStats() {
+    this.drawTime = 0;
+    this.numDraws = 0;
+  }
+
   //get map container node
   node() {
     return this.mapContainer.node();

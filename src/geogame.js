@@ -10,8 +10,8 @@ class Overlay {
       .classed('overlay', true);
 
     this.infoBar = this.overlayNode.append('div')
-    .classed('info-bar', true)
-    .classed('hidden', true)
+      .classed('info-bar', true)
+      .classed('hidden', true)
 
     this.infoBar.append('div')
       .classed('info-container', true);
@@ -74,6 +74,10 @@ class Overlay {
     this.startNode.append('button')
       .text('About')
       .classed('about start-button', true)
+
+    //fps counter
+    this.fps = this.overlayNode.append('div')
+      .classed('fps-counter', true)
   }
 
   showStartScreen() {
@@ -104,6 +108,10 @@ class Overlay {
     this.score.text(text);
   }
 
+  setFPS(text) {
+    this.fps.text(text);
+  }
+
   node() {
     return this.overlayNode.node();
   }
@@ -127,12 +135,26 @@ class GeoGame {
     this.round = 0;
     this.score = 0;
     this.maxRound = 0;
+
+    setInterval(() => {
+      this.updateFPSCounter();
+    }, GeoGame.FPS_UPDATE_INTERVAL);
   }
 
   append() {
     document.body.appendChild(this.globe.node());
     document.body.appendChild(this.overlay.node());
     this.globe.startAutoRotate();
+  }
+
+  updateFPSCounter() {
+    if(this.globe.numDraws) {
+      let fps = 1000 * this.globe.numDraws / GeoGame.FPS_UPDATE_INTERVAL ;
+      this.overlay.setFPS(Math.round(fps));
+    } else
+      this.overlay.setFPS('idle');
+
+    this.globe.clearStats();
   }
 
   startGame(numQuestions = GeoGame.NUM_QUESTIONS_PER_GAME) {
@@ -195,6 +217,8 @@ GeoGame.SCORE_PER_QUESTION = 100;
 GeoGame.QUESTION_PROMPT = 'Where in the goddamn fuck is: ';
 GeoGame.SCORE_LABEL = 'Score: ';
 GeoGame.ROUND_LABEL = 'Round: ';
+
+GeoGame.FPS_UPDATE_INTERVAL = 500;
 
 module.exports = {
   GeoGame
