@@ -104,6 +104,75 @@ class InteractiveGlobe extends Globe {
     this.draw();
   }
 
+  rotateToLocation(target, cb) {
+    let lonlat = target;
+    if(!Array.isArray(target) && target.type == 'Feature')
+      lonlat = d3.geoCentroid(target);
+
+    this.disableInteraction();
+    const currRotate = this.projection.rotate();
+    const targetRotate = [-lonlat[0], -lonlat[1], 0];
+
+
+    //draw with isZooming set to true, sets it to use low res data
+    this.isZooming = true;
+    this.draw();
+
+    //make interpolation factories to be used for attribute tweens
+    let globe = this;
+    let r = d3.interpolate(currRotate, targetRotate);
+
+    let interpFactory = function(d) {
+      return function(t) {
+        globe.projection.rotate(r(t))
+        globe.geoGenerator.projection(globe.projection);
+        return globe.geoGenerator(d);
+      }
+    };
+
+    let gratInterpFactory = function(d) {
+      return function(t) {
+        globe.projection.rotate(r(t))
+        globe.geoGenerator.projection(globe.projection);
+        return globe.geoGenerator(globe.graticule());
+      }
+    }
+
+    //set transitions
+    this.map.select('g.countries')
+      .selectAll("path")
+      .transition()
+      .attrTween("d", interpFactory)
+      .duration(InteractiveGlobe.ROTATION_TRANSITION_LENGTH);
+
+    this.map.select('g.rivers')
+      .selectAll("path")
+      .transition()
+      .attrTween("d", interpFactory)
+      .duration(InteractiveGlobe.ROTATION_TRANSITION_LENGTH);
+
+    this.map.select('g.lakes')
+      .selectAll("path")
+      .transition()
+      .attrTween("d", interpFactory)
+      .duration(InteractiveGlobe.ROTATION_TRANSITION_LENGTH);
+
+    this.map.select('g.graticule path')
+      .transition()
+      .attrTween("d", gratInterpFactory)
+      .duration(InteractiveGlobe.ROTATION_TRANSITION_LENGTH);
+
+    //actions after transition is done (need 50ms delay to ensure last draw occurs after)
+    setTimeout(() => {
+      this.isZooming = false;
+      this.draw();
+      this.enableInteraction();
+
+      if(cb)
+        cb();
+    }, InteractiveGlobe.ROTATION_TRANSITION_LENGTH + 50)
+  }
+
   isInteractionEnabled() {
     return this.interaction;
   }
@@ -177,6 +246,8 @@ InteractiveGlobe.ROTATION_SPEED = 250;
 
 InteractiveGlobe.SCALE_CHANGE_CONSTANT = 1 / 6;
 InteractiveGlobe.ROTATION_SCALE_CONSTANT = 90;
+
+InteractiveGlobe.ROTATION_TRANSITION_LENGTH = 1000;
 
 module.exports = {
   InteractiveGlobe
