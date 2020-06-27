@@ -177,19 +177,22 @@ class GeoGame {
 
   startRound() {
     let question = this.getQuestion(this.questionIndex);
-    this.updateOverlay(question.NAME, this.round, this.score);
+    this.updateOverlay(question.properties.NAME, this.round, this.score);
 
-    this.globe.onclick = (country) => {
-      if(country.ISO_A3 == question.ISO_A3)
+    this.globe.onclick = (lonlat, country) => {
+      if(country.properties.ISO_A3 == question.properties.ISO_A3) {
         this.score += GeoGame.SCORE_PER_QUESTION;
-      
         this.updateOverlay(null, null, this.score);
+      }
+      
+      this.globe.rotateToLocation(question, () => {
         if(this.round < this.maxRound) {
           this.round++;
           this.questionIndex++;
           this.startRound();
         } else
           this.endGame();
+      });
     };
   }
 

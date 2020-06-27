@@ -1,13 +1,11 @@
 class GeoData {
   constructor() {
-    this.countries = GeoData.COUNTRIES_50M.features.map(feature => feature.properties).filter(country => country.TYPE === 'Country' || country.TYPE === 'Sovereign country');
+    this.countries = GeoData.COUNTRIES_50M.features.filter(feature => feature.properties.TYPE === 'Country' || feature.properties.TYPE === 'Sovereign country');
     this.numCountries = this.countries.length;
-    console.log(this.countries)
-
   }
 
   findCountry(ISO_A3) {
-    return this.countries.find(country => country.ISO_A3 === ISO_A3);
+    return this.countries.find(country => country.properties.ISO_A3 === ISO_A3);
   }
 
   getRandomCountries(num) {
