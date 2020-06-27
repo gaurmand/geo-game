@@ -38,13 +38,13 @@ class ModifiableGlobe extends InteractiveGlobe {
       .attr('d', this.geoGenerator)
       .on('click', d => {
         console.log(d.properties.NAME);
+        let lonlat = this.projection.invert([event.clientX, event.clientY]);
 
-        if(this.pointMode) {
-          let lonlat = this.projection.invert([event.clientX, event.clientY]);
+        if(this.pointMode)
           this.addPoint(lonlat);
-        }
+        
         if(this.onclick)
-          this.onclick(d.properties)
+          this.onclick(lonlat, d);
       });
   }
 
