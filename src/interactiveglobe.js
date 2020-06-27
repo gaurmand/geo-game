@@ -66,10 +66,9 @@ class InteractiveGlobe extends Globe {
     this.svg.call(this.zoom)
       .on('dblclick.zoom', null); //disable double click zooming
 
-    //make globe auto rotate on start
+    //autorotate
     this.autoRotating = true;
     this.autoRotateTimer = null;
-    this.startAutoRotate();
   }
 
   //given two screen coordinates (of a drag gesture), calculate the new projection rotation
