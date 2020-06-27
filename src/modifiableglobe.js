@@ -12,9 +12,6 @@ class ModifiableGlobe extends InteractiveGlobe {
     this.svg.append('g')
       .classed('points', true)
       .attr('fill', 'red');
-
-    this.setPointMode();
-    this.setHighlightMode();
   }
 
   //generate and draw map and graticule paths
@@ -46,6 +43,8 @@ class ModifiableGlobe extends InteractiveGlobe {
           let lonlat = this.projection.invert([event.clientX, event.clientY]);
           this.addPoint(lonlat);
         }
+        if(this.onclick)
+          this.onclick(d.properties)
       });
   }
 
@@ -178,6 +177,10 @@ class ModifiableGlobe extends InteractiveGlobe {
 
   unsetPointMode() {
     this.pointMode = false;
+  }
+
+  on(event, cb) {
+    this['on'+event] = cb;
   }
 }
 
