@@ -62,10 +62,6 @@ class InteractiveGlobe extends Globe {
         this.draw();
       });
 
-    //set zoom behaviour 
-    this.svg.call(this.zoom)
-      .on('dblclick.zoom', null); //disable double click zooming
-
     //autorotate
     this.autoRotating = true;
     this.autoRotateTimer = null;
