@@ -158,8 +158,6 @@ class GeoGame {
   }
 
   startGame(numQuestions = GeoGame.NUM_QUESTIONS_PER_GAME) {
-    this.globe.setHighlightMode();
-
     this.questions = this.generateQuestions(numQuestions);
     this.questionIndex = 0;
     this.round = 1;
@@ -172,27 +170,42 @@ class GeoGame {
   endGame() {
     this.globe.onclick = null;
     this.updateOverlay('GG', null, null);
-    this.globe.unsetHighlightMode();
   }
 
   startRound() {
+    this.globe.enableHighlightMode();
     let question = this.getQuestion(this.questionIndex);
     this.updateOverlay(question.properties.NAME, this.round, this.score);
 
     this.globe.onclick = (lonlat, country) => {
+      this.globe.disableHighlightMode();
+      this.globe.clearHighlightedCountries();
+      this.globe.highlightCountry(question.properties.ISO_A3, 'green');
+
       if(country.properties.ISO_A3 == question.properties.ISO_A3) {
+        //correct country clicked
         this.score += GeoGame.SCORE_PER_QUESTION;
         this.updateOverlay(null, null, this.score);
-      }
-      
-      this.globe.rotateToLocation(question, () => {
-        if(this.round < this.maxRound) {
-          this.round++;
-          this.questionIndex++;
-          this.startRound();
-        } else
-          this.endGame();
-      });
+      } else 
+        //wrong country clicked
+        this.globe.highlightCountry(country.properties.ISO_A3, 'red');
+
+      this.globe.draw(); //country highlighting transitions play
+
+      //after transitions finish, rotate globe to show correct country
+      setTimeout(() => {
+        this.globe.rotateToLocation(question, () => {
+          if(this.round < this.maxRound) {
+            //still more rounds to go
+            this.round++;
+            this.questionIndex++;
+            this.startRound();
+          } else
+            //last round finished
+            this.endGame();
+        });
+      }, GeoGame.ROTATE_TO_CORRECT_COUNTRY_DELAY);
+
     };
   }
 
@@ -220,6 +233,7 @@ GeoGame.SCORE_PER_QUESTION = 100;
 GeoGame.QUESTION_PROMPT = 'Where in the goddamn fuck is: ';
 GeoGame.SCORE_LABEL = 'Score: ';
 GeoGame.ROUND_LABEL = 'Round: ';
+GeoGame.ROTATE_TO_CORRECT_COUNTRY_DELAY = 1500;
 
 GeoGame.FPS_UPDATE_INTERVAL = 500;
 
