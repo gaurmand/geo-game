@@ -9,6 +9,7 @@ class ModifiableGlobe extends InteractiveGlobe {
     super(width, height);
 
     this.points = [];
+    this.highlightedCountries = [];
     this.svg.append('g')
       .classed('points', true)
       .attr('fill', 'red');
@@ -29,12 +30,12 @@ class ModifiableGlobe extends InteractiveGlobe {
   }
 
   drawCountries(countries) {
-    let globe = this;
-
     this.map.select('g.countries')
       .selectAll('path')
-      .data(countries.features)
+      .data(countries.features, d => d.properties.ISO_A3)
       .join('path')
+      .classed('red-highlight', d => this.isHighlightedCountry(d, 'red'))
+      .classed('green-highlight', d => this.isHighlightedCountry(d, 'green'))
       .attr('d', this.geoGenerator)
       .on('click', d => {
         console.log(d.properties.NAME);
@@ -161,21 +162,33 @@ class ModifiableGlobe extends InteractiveGlobe {
     return [λ * 180 / Math.PI, φ * 180 / Math.PI];
   }
 
-  setHighlightMode() {
+  enableHighlightMode() {
     this.highlightMode = true;
     this.map.select('g.countries').classed('highlight', true);
   }
 
-  unsetHighlightMode() {
+  disableHighlightMode() {
     this.highlightMode = false;
     this.map.select('g.countries').classed('highlight', false);
   }
 
-  setPointMode() {
+  highlightCountry(ISO_A3, colour) {
+    this.highlightedCountries.push({ISO_A3, colour});
+  }
+
+  clearHighlightedCountries() {
+    this.highlightedCountries = [];
+  }
+
+  isHighlightedCountry(d, colour) {
+    return this.highlightedCountries.findIndex(country => country.ISO_A3 == d.properties.ISO_A3 && country.colour == colour) >= 0
+  }
+
+  enablePointMode() {
     this.pointMode = true;
   }
 
-  unsetPointMode() {
+  disablePointMode() {
     this.pointMode = false;
   }
 
