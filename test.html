@@ -7,13 +7,38 @@
   <style>
     body {
       margin: 0;
+      overflow: hidden;
     }
 
     .hidden {
       display: none !important;
     }
 
-    /*CInfo bar*/
+    .geo-button {
+      background: #00000000;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      padding: 5px 35px;
+      margin: 5px;
+      font-family: Helvetica, sans-serif;
+      transition: background-color 0.2s ease-out, color 0.2s ease-out;
+      user-select: none;
+    }
+
+    .geo-button:hover, 
+    .geo-button:focus{
+      outline: none;
+      background-color: white;
+      color: black;
+    }
+
+    .geo-container {
+      background-color: rgba(0,0,0,0.8);
+      border-radius: 10px;
+    }
+
+    /*Info bar*/
 
     .info-bar {
       width: 100%;
@@ -34,6 +59,7 @@
       justify-content: space-evenly;
       background-color: rgba(0,0,0,0.8);
       border-radius: 10px;
+      z-index: 2;
     }
 
     .info {
@@ -102,7 +128,7 @@
     }
 
     .countries path {
-      transition: fill 0.3s;
+      transition: fill 0.7s;
     }
 
     .countries path.red-highlight,
@@ -180,6 +206,81 @@
       left: 0;
       color: white;
     }
+
+    /*fps couter*/
+    .result-container {
+      position: absolute;
+      color: white;
+      font-family: Helvetica, sans-serif;
+      padding: 10px;
+      min-width: 150px;
+      z-index: 1;
+    }
+
+    .result-container .result {
+      background-color: rgba(0,0,0,0.5);
+      border: 1px solid white;
+      display: flex;
+      flex-direction: column;
+      border-radius: 10px;
+    }
+
+    .result-container .title {
+      text-align: center;
+      font-size: 24px;
+      margin: 10px 10px 5px 10px;
+    }
+
+    .result-container .breakdown {
+      margin: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .breakdown .labels {
+      display: inline-block;
+      font-size: 16px;
+    } 
+
+    .breakdown .values {
+      display: inline-block;
+      text-align: right;
+      font-size: 16px;
+    } 
+
+    .breakdown .value, 
+    .breakdown .label {
+      margin: 5px 0px;
+    }
+
+    .divider {
+      background-color: white;
+      margin: 5px 8px;
+      height: 2px;
+    }
+
+    .divider.full {
+      margin: 5px 0px;
+    }
+
+    .total {
+      text-align: right;
+      margin: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+    }
+
+    .total .value {
+      font-weight: bold;
+      font-size: 24px;
+    }
+
+    .result-container .next {
+      font-size: 16px;
+    }
+
   </style>
 </head>
 

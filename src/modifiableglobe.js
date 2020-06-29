@@ -26,6 +26,9 @@ class ModifiableGlobe extends InteractiveGlobe {
     this.drawRivers(data.rivers);
     this.drawLakes(data.lakes);
 
+    if(this.ondraw)
+      this.ondraw();
+
     this.endDrawTimer();
   }
 

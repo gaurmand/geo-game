@@ -4,6 +4,94 @@ const {
 
 const d3 = require("d3");
 
+class QuestionResult {
+  constructor() {
+    this.containerNode = d3.create('div')
+      .classed('geo-container result-container', true)
+      .style('visibility', 'hidden')
+      .style('top', '0px')
+
+    this.result = this.containerNode.append('div')
+      .classed('result', true);
+    
+    this.title = this.result.append('div')
+      .classed('title', true)
+      .text('Bosnia & Herzegovina')
+
+    this.scoreBreakdown = this.result.append('div')
+      .classed('breakdown', true)
+
+    this.scoreLabels = this.scoreBreakdown.append('div')
+      .classed('labels', true)
+
+    this.scoreLabels.append('div')
+      .classed('label', true)
+      .text('Proximity:')
+
+    this.scoreLabels.append('div')
+      .classed('label', true)
+      .text('Adjacency:')
+
+    this.scoreValues = this.scoreBreakdown.append('div')
+      .classed('values', true)
+
+    this.proximity = this.scoreValues.append('div')
+      .classed('value', true)
+      .text('+1400')
+
+    this.adjacency = this.scoreValues.append('div')
+      .classed('value', true)
+      .text('+100')
+
+    this.result.append('div')
+      .classed('divider', true)
+
+    this.totalContainer = this.result.append('div')
+      .classed('total', true)
+
+    this.totalContainer.append('div')
+      .classed('label', true)
+      .text('Total: ')
+
+    this.total = this.totalContainer.append('div')
+      .classed('value', true)
+      .text('+1500')
+
+    this.nextButton = this.result.append('button')
+      .classed('geo-button next', true)
+      .text('Next')
+  }
+
+  setInfo(title, results) {
+    this.title.text(title);
+    this.proximity.text('+'+results.proximity);
+    this.adjacency.text('+'+results.adjacency);
+    this.total.text('+'+results.total);
+
+  }
+
+  setPosition(position) {
+    this.containerNode.style('top', position.top+'px')
+      .style('left', position.left+'px')
+  }
+
+  onNext(next) {
+    this.nextButton.on('mouseup', next);
+  }
+
+  show() {
+    this.containerNode.style('visibility', 'visible');
+  }
+
+  hide() {
+    this.containerNode.style('visibility', 'hidden');
+  }
+
+  node() {
+    return this.containerNode.node();
+  }
+}
+
 class Overlay {
   constructor(startCb) {
     this.overlayNode = d3.create('div')
@@ -136,6 +224,8 @@ class GeoGame {
     this.score = 0;
     this.maxRound = 0;
 
+    this.questionResult = new QuestionResult();
+
     setInterval(() => {
       this.updateFPSCounter();
     }, GeoGame.FPS_UPDATE_INTERVAL);
@@ -144,6 +234,8 @@ class GeoGame {
   append() {
     document.body.appendChild(this.globe.node());
     document.body.appendChild(this.overlay.node());
+    document.body.appendChild(this.questionResult.node());
+
     this.globe.startAutoRotate();
   }
 
@@ -177,14 +269,17 @@ class GeoGame {
     let question = this.getQuestion(this.questionIndex);
     this.updateOverlay(question.properties.NAME, this.round, this.score);
 
-    this.globe.onclick = (lonlat, country) => {
+    this.globe.on('click', (lonlat, country) => {
+      this.globe.on('click', null);
       this.globe.disableHighlightMode();
-      this.globe.clearHighlightedCountries();
+
+      let results = this.computeResults(question, country);
+
       this.globe.highlightCountry(question.properties.ISO_A3, 'green');
 
-      if(country.properties.ISO_A3 == question.properties.ISO_A3) {
+      if(results.correct) {
         //correct country clicked
-        this.score += GeoGame.SCORE_PER_QUESTION;
+        this.score += results.total;
         this.updateOverlay(null, null, this.score);
       } else 
         //wrong country clicked
@@ -195,18 +290,81 @@ class GeoGame {
       //after transitions finish, rotate globe to show correct country
       setTimeout(() => {
         this.globe.rotateToLocation(question, () => {
-          if(this.round < this.maxRound) {
-            //still more rounds to go
-            this.round++;
-            this.questionIndex++;
-            this.startRound();
-          } else
-            //last round finished
-            this.endGame();
+          //show results dialog after rotating
+          this.showResults(question, results);
         });
       }, GeoGame.ROTATE_TO_CORRECT_COUNTRY_DELAY);
 
+    });
+  }
+
+  computeResults(question, country) {
+    let result = {
+      correct: false,
+      proximity: 0,
+      adjacency: 0,
+      total: 0
     };
+    
+    if(country.properties.ISO_A3 == question.properties.ISO_A3) {
+      //correct country clicked
+      result.adjacency = GeoGame.SCORE_PER_QUESTION;
+      result.total = GeoGame.SCORE_PER_QUESTION;
+      result.correct = true;
+    }
+    
+    return result;
+  }
+
+  showResults(question, results) {
+    let anchor = d3.geoCentroid(question);
+    this.questionResult.setInfo(question.properties.NAME, results);
+
+    //show initial results
+    let screenPosition = this.getResultsPosition(anchor);
+    this.questionResult.setPosition(screenPosition);
+    this.questionResult.show();
+    this.globe.draw();
+
+    this.globe.on('draw', () => {
+      //update results positions when globe is redrawn
+      let screenPosition = this.getResultsPosition(anchor);
+      this.questionResult.setPosition(screenPosition);
+    });
+
+    this.questionResult.onNext(() => {
+      this.globe.clearHighlightedCountries();
+      this.globe.draw();
+      this.questionResult.hide();
+
+      //stop updating results position
+      this.globe.on('draw', null); 
+
+      if(this.round < this.maxRound) {
+        //still more rounds to go
+        this.round++;
+        this.questionIndex++;
+        this.startRound();
+      } else
+        //last round finished
+        this.endGame();
+    });
+  }
+
+  getResultsPosition(anchor) {
+    let screenPosition;
+
+    if (this.globe.isPointVisible(anchor))
+      screenPosition = this.globe.projection(anchor);
+    else {
+      let horizonPoint = this.globe.getHorizonPoint(anchor);
+      screenPosition = this.globe.projection(horizonPoint);
+    }
+
+    return {
+      top: screenPosition[1],
+      left: screenPosition[0]
+    };;
   }
 
   getQuestion(i) {
