@@ -1,12 +1,6 @@
 const d3 = require("d3");
-
-const {
-  Globe
-} = require('./globe');
-
-const {
-  GeoData
-} = require('./geodata');
+const Globe = require('./globe');
+const GeoData = require('../geodata');
 
 class InteractiveGlobe extends Globe {
   constructor(width, height) {
@@ -249,6 +243,4 @@ InteractiveGlobe.ROTATION_SCALE_CONSTANT = 90;
 
 InteractiveGlobe.ROTATION_TRANSITION_LENGTH = 1000;
 
-module.exports = {
-  InteractiveGlobe
-};
+module.exports = InteractiveGlobe;

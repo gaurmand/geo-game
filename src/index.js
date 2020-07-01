@@ -1,10 +1,5 @@
-const {
-    GeoGame
-} = require('./geogame');
-
-const {
-    GeoData
-} = require('./geodata');
+const GeoGame = require('./geogame');
+const GeoData = require('./geodata');
 
 let geo = new GeoData();
 let geoGame = new GeoGame(geo);

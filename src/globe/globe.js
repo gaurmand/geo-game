@@ -1,8 +1,5 @@
 const d3 = require("d3");
-
-const {
-  GeoData
-} = require('./geodata');
+const GeoData = require('../geodata');
 
 class Globe {
   constructor(width, height) {
@@ -175,6 +172,4 @@ Globe.RIVER_STROKE_WIDTH = '0.8';
 
 Globe.COUNTRY_STOKE_WIDTH = '1.1';
 
-module.exports = {
-  Globe
-};
+module.exports = Globe;

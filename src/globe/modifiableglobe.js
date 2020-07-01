@@ -1,8 +1,6 @@
 const d3 = require("d3");
 
-const {
-  InteractiveGlobe
-} = require('./interactiveglobe');
+const InteractiveGlobe = require('./interactiveglobe');
 
 class ModifiableGlobe extends InteractiveGlobe {
   constructor(width, height) {
@@ -206,6 +204,4 @@ ModifiableGlobe.POINT_TYPE = {
   VISIBLE_ON_HORIZON: 3
 }
 
-module.exports = {
-  ModifiableGlobe
-};
+module.exports = ModifiableGlobe;

@@ -54,6 +54,4 @@ GeoData.RIVERS_110M = require('../data/GeoJSON/ne_110m_rivers_lake_centerlines_3
 GeoData.LAKES_50M = require('../data/GeoJSON/ne_50m_lakes.json');
 GeoData.LAKES_110M = require('../data/GeoJSON/ne_110m_lakes_47.json');
 
-module.exports = {
-  GeoData
-};
+module.exports = GeoData;

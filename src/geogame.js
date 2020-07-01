@@ -1,6 +1,4 @@
-const {
-  ModifiableGlobe
-} = require('./modifiableglobe');
+const ModifiableGlobe = require('./globe/modifiableglobe');
 
 const StartOverlay = require('./ui/startoverlay');
 const GameInfoBar = require('./ui/gameinfobar');
@@ -209,6 +207,4 @@ GeoGame.ROTATE_TO_CORRECT_COUNTRY_DELAY = 1500;
 
 GeoGame.FPS_UPDATE_INTERVAL = 500;
 
-module.exports = {
-  GeoGame
-};
+module.exports = GeoGame;
