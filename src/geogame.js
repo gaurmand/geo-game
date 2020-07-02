@@ -1,15 +1,14 @@
-const ModifiableGlobe = require('./globe/modifiableglobe');
+const d3 = require("d3");
+const GeoGlobe = require('./globe/geoglobe'); 
 
 const StartOverlay = require('./ui/startoverlay');
 const GameInfoBar = require('./ui/gameinfobar');
 const FPSCounter = require('./ui/fpscounter');
 const QuestionResult = require('./ui/questionresult');
 
-const d3 = require("d3");
-
 class GeoGame {
   constructor(geoData) {
-    this.globe = new ModifiableGlobe(window.innerWidth, window.innerHeight);
+    this.globe = new GeoGlobe();
     this.globe.draw();
 
     this.geoData = geoData;
@@ -19,9 +18,10 @@ class GeoGame {
     this.gameInfoBar = new GameInfoBar(this.overlay);
 
     this.startOverlay = new StartOverlay(this.overlay, () => {
-      this.globe.enableInteraction();
       this.startOverlay.hide();
       this.gameInfoBar.show();
+      this.globe.moveToGamePosition();
+      this.globe.enableInteraction();
       this.startGame();
     });
 
@@ -46,6 +46,7 @@ class GeoGame {
     document.body.appendChild(this.overlay.node());
     document.body.appendChild(this.questionResult.node());
 
+    this.globe.moveToStartPosition();
     this.startOverlay.show();
     this.globe.startAutoRotate();
   }

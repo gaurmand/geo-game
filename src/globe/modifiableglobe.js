@@ -3,8 +3,8 @@ const d3 = require("d3");
 const InteractiveGlobe = require('./interactiveglobe');
 
 class ModifiableGlobe extends InteractiveGlobe {
-  constructor(width, height) {
-    super(width, height);
+  constructor(width, height, padding) {
+    super(width, height, padding);
 
     this.points = [];
     this.highlightedCountries = [];

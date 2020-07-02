@@ -2,27 +2,27 @@ const d3 = require("d3");
 const GeoData = require('../geodata');
 
 class Globe {
-  constructor(width, height) {
+  constructor(width, height, padding) {
+    //create map container div
+    this.padding = padding;
     this.width = width;
     this.height = height;
 
-    //create map container div
-    this.mapContainer = d3.create('div')
+    this.container = d3.create('div')
       .classed('map-container', true);
 
-    this.mapContainer
+    this.container
       .style('width', this.width + 'px')
       .style('height', this.height + 'px')
       .style('background', Globe.DEFAULT_COLOUR.BACKGROUND);
 
     //create map svg
-    this.svg = this.mapContainer.append('svg');
-    this.map = this.svg.append('g')
-      .classed('map', true)
+    this.svg = this.container.append('svg')
+      .style('transition', 'transform 0.8s cubic-bezier(0.65, 0, 0.35, 1)')
+      .attr('viewBox', `0,0,${this.width},${this.height}`)
 
-    this.svg.attr('viewBox', `0,0,${this.width},${this.height}`)
-      .attr('width', `${this.width}`)
-      .attr('height', `${this.height}`);
+    this.map = this.svg.append('g')
+      .classed('map', true);
 
     this.map.append('g')
       .classed('graticule', true)
@@ -54,10 +54,15 @@ class Globe {
     this.graticule = d3.geoGraticule();
 
     //initial projection and path generator
+    let left = this.padding.left;
+    let right = this.width - this.padding.right;
+    let top = this.padding.top;
+    let bottom = this.height - this.padding.bottom;
+
     this.projection = d3.geoOrthographic()
       .fitExtent([
-        [0, Globe.PADDING_TOP],
-        [this.width, this.height - Globe.PADDING_BOTTOM]
+        [left, top],
+        [right, bottom]
       ], GeoData.COUNTRIES_110M)
 
     this.initialScale = this.projection.scale();
@@ -136,7 +141,7 @@ class Globe {
 
   //get map container node
   node() {
-    return this.mapContainer.node();
+    return this.container.node();
   }
 
   getData() {
@@ -146,12 +151,13 @@ class Globe {
       lakes: GeoData.LAKES_110M
     };
   }
+
+  transform(tx, ty, s = 1) {
+    this.svg.attr('transform', `translate(${tx}, ${ty}) scale(${s})`);
+  }
 }
 
 //MAP CONSANTS
-Globe.PADDING_TOP = 150;
-Globe.PADDING_BOTTOM = 50;
-
 Globe.DEBUG = false;
 
 //MAP DEFAULT STYLE

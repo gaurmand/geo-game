@@ -3,8 +3,8 @@ const Globe = require('./globe');
 const GeoData = require('../geodata');
 
 class InteractiveGlobe extends Globe {
-  constructor(width, height) {
-    super(width, height);
+  constructor(width, height, padding) {
+    super(width, height, padding);
 
     //zoom & pan interactivity
     this.interaction = true;
