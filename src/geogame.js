@@ -77,7 +77,7 @@ class GeoGame {
 
     setTimeout(() => {
       this.gameInfoBar.hide();
-      this.startOverlay.show();
+      this.globe.moveToEndPosition();
     }, 10000);
   }
 
@@ -202,7 +202,7 @@ class GeoGame {
   }
 }
 
-GeoGame.NUM_QUESTIONS_PER_GAME= 10;
+GeoGame.NUM_QUESTIONS_PER_GAME = 5;
 GeoGame.SCORE_PER_QUESTION = 100;
 GeoGame.ROTATE_TO_CORRECT_COUNTRY_DELAY = 1500;
 
