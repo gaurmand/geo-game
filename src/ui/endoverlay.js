@@ -1,7 +1,7 @@
 class EndOverlay {
   constructor(overlay, playCb, menuCb) {
     this.overlay = overlay;
-    this.results = [];
+    this.questions = [];
 
     this.endContainer = this.overlay.append('div')
       .classed('geo-container end-container', true)
@@ -53,20 +53,17 @@ class EndOverlay {
       .on('click', menuCb);
   }
 
-  setQuestionResults(results) {
+  setQuestionResults(questions) {
     this.clearResults();
-    this.results = results;
-    let total = 0;
+    this.questions = questions;
 
-    results.forEach((result, i) => {
-      let questionText = `Q${i+1}: ${result.question.properties.NAME}`;
-      let scoreText = `+${result.total}`;
-      total += result.total;
-
+    questions.forEach((question, i) => {
+      let questionText = `Q${i+1}: ${question.getCountryName()}`;
+      let scoreText = `+${question.getTotalScore()}`;
       this.appendRow(questionText, scoreText);
     });
 
-    this.score.text(`+${total}`)
+    this.score.text(`+${questions.getTotalScore()}`)
   }
 
   appendRow(questionText, scoreText) {
@@ -79,7 +76,7 @@ class EndOverlay {
 
   clearResults() {
     this.tableBody.selectAll('.end-table-row').remove();
-    this.results = [];
+    this.questions = [];
   }
 
   setPosition(map) {

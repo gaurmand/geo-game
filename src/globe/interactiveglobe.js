@@ -100,9 +100,6 @@ class InteractiveGlobe extends Globe {
 
   rotateToLocation(target, cb) {
     let lonlat = target;
-    if(!Array.isArray(target) && target.type == 'Feature')
-      lonlat = d3.geoCentroid(target);
-
     const currRotate = this.projection.rotate();
     const targetRotate = [-lonlat[0], -lonlat[1], 0];
 

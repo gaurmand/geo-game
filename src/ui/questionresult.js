@@ -54,11 +54,12 @@ class QuestionResult {
       .text(QuestionResult.NEXT_BUTTON_TEXT);
   }
 
-  setInfo(title, results) {
-    this.title.text(title);
-    this.proximity.text('+' + results.proximity);
-    this.adjacency.text('+' + results.adjacency);
-    this.total.text('+' + results.total);
+  setInfo(question) {
+    this.title.text(question.getCountryName());
+    let score = question.getScore();
+    this.proximity.text('+' + score.proximity);
+    this.adjacency.text('+' + score.adjacency);
+    this.total.text('+' + score.total);
   }
 
   setPosition(position) {

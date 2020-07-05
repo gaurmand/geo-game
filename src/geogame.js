@@ -7,6 +7,111 @@ const FPSCounter = require('./ui/fpscounter');
 const QuestionResult = require('./ui/questionresult');
 const EndOverlay = require("./ui/endoverlay");
 
+class Question {
+  constructor(country) {
+    this.questionCountry = country;
+    this.centroid = d3.geoCentroid(this.questionCountry);
+
+    this.answered = false;
+    this.answerCountry = null;
+    this.answerLonLat = null;
+
+    this.correctCountry = false;
+    this.adjacentCountry = false;
+    this.proximityScore = 0;
+    this.adjacencyScore = 0;
+    this.totalScore = 0;
+  }
+
+  answer(answerLonLat, answerCountry) {
+    this.answered = true;
+    this.answerCountry = answerCountry;
+    this.answerLonLat = answerLonLat;
+
+    return this.computeScore(this.answerCountry, this.questionCountry);
+  }
+
+  computeScore(answerCountry, questionCountry){
+    if(answerCountry.properties.ISO_A3 == questionCountry.properties.ISO_A3) {
+      //correct country clicked
+      this.correctCountry = true;
+      this.proximityScore = 0;
+      this.adjacencyScore = 0;
+      this.totalScore = Question.SCORE_PER_QUESTION;
+    }
+
+    return this.getScore();
+  }
+
+  getScore() {
+    return {
+      proximity: this.proximityScore,
+      adjacency: this.adjacencyScore,
+      total: this.totalScore
+    };
+  }
+
+  getTotalScore() {
+    return this.totalScore;
+  }
+
+  getCountryName() {
+    return this.questionCountry.properties.NAME;
+  }
+
+  getCountryId() {
+    return this.questionCountry.properties.ISO_A3;
+  }
+
+  getCentroid() {
+    return this.centroid;
+  }
+
+  isAnswered() {
+    return this.answered;
+  }
+
+  isCorrect() {
+    return this.correctCountry;
+  }
+}
+Question.SCORE_PER_QUESTION = 100;
+
+class QuestionSet {
+  constructor(geoData, numQuestions = QuestionSet.DEFAULT_NUM_QUESTIONS) {
+    this.numQuestions = numQuestions;
+    this.geoData = geoData;
+    this.questionCountries = this.geoData.getRandomCountries(numQuestions);
+    this.questions = [];
+    this.questionCountries.forEach(country => {
+      this.questions.push(new Question(country));
+    });
+  }
+
+  getQuestion(i) {
+    return this.questions[i];
+  }
+
+  isAnswered() {
+    this.questions.forEach(question => {
+      if(!question.isAnswered())
+        return false;
+    });
+    return true;
+  }
+
+  getTotalScore() {
+    let total = 0;
+    this.questions.forEach(question => total += question.totalScore);
+    return total;
+  }
+
+  forEach(cb) {
+    this.questions.forEach((question, i, arr) => cb(question, i, arr));
+  }
+}
+QuestionSet.DEFAULT_NUM_QUESTIONS = 10;
+
 class GeoGame {
   constructor(geoData) {
     this.globe = new GeoGlobe();
@@ -45,12 +150,10 @@ class GeoGame {
       });
     });
 
-    this.questions = [];
-    this.results = [];
-    this.questionIndex = 0;
-    this.round = 0;
+    this.questions = null;
+    this.numQuestions = 0;
+    this.currQuestion = 0;
     this.score = 0;
-    this.maxRound = 0;
 
     setInterval(() => {
       this.updateFPSCounter();
@@ -78,11 +181,9 @@ class GeoGame {
   }
 
   startGame(numQuestions = GeoGame.NUM_QUESTIONS_PER_GAME) {
-    this.questions = this.generateQuestions(numQuestions);
-    this.results = [];
-    this.questionIndex = 0;
-    this.round = 1;
-    this.maxRound = numQuestions;
+    this.questions = new QuestionSet(this.geoData, numQuestions);
+    this.numQuestions = numQuestions;
+    this.currQuestion = 0;
     this.score = 0;
 
     this.startRound();
@@ -94,32 +195,32 @@ class GeoGame {
 
     this.gameInfoBar.hide();
     this.globe.disableHighlightMode();
-    this.endOverlay.setQuestionResults(this.results);
+    this.endOverlay.setQuestionResults(this.questions);
 
+    this.globe.moveToStartPosition();
     this.globe.zoomOut(() => {
-      this.globe.moveToStartPosition();
       this.endOverlay.setPosition(this.globe.getMapBBox());
       this.endOverlay.show();
     });
   }
 
   startRound() {
+    let question = this.questions.getQuestion(this.currQuestion);
+
     this.globe.enableHighlightMode();
-    let question = this.getQuestion(this.questionIndex);
-    this.updateOverlay(question.properties.NAME, this.round, this.score);
+    this.updateOverlay(question.getCountryName(), this.currQuestion+1, this.score);
 
     this.globe.on('click', (lonlat, country) => {
       this.globe.on('click', null);
       this.globe.disableHighlightMode();
 
-      let result = this.computeResults(question, country);
-      this.results.push(result);
+      let questionScore = question.answer(lonlat, country);
 
-      this.globe.highlightCountry(question.properties.ISO_A3, 'green');
+      this.globe.highlightCountry(question.getCountryId(), 'green');
 
-      if(result.correct) {
+      if(question.isCorrect()) {
         //correct country clicked
-        this.score += result.total;
+        this.score += questionScore.total;
         this.updateOverlay(null, null, this.score);
       } else 
         //wrong country clicked
@@ -129,37 +230,30 @@ class GeoGame {
 
       //after transitions finish, rotate globe to show correct country
       setTimeout(() => {
-        this.globe.rotateToLocation(question, () => {
+        this.globe.rotateToLocation(question.getCentroid(), () => {
           //show results dialog after rotating
-          this.showResults(question, result);
+          this.showResults(question, () => {
+            //start next round/end game
+            this.globe.clearHighlightedCountries();
+            this.globe.draw();
+            this.questionResult.hide();
+            
+            if(++this.currQuestion < this.numQuestions)
+              //still more rounds to go
+              this.startRound();
+            else
+              //last round finished
+              this.endGame();
+          });
         });
       }, GeoGame.ROTATE_TO_CORRECT_COUNTRY_DELAY);
 
     });
   }
 
-  computeResults(question, country) {
-    let result = {
-      question: question,
-      correct: false,
-      proximity: 0,
-      adjacency: 0,
-      total: 0
-    };
-    
-    if(country.properties.ISO_A3 == question.properties.ISO_A3) {
-      //correct country clicked
-      result.adjacency = GeoGame.SCORE_PER_QUESTION;
-      result.total = GeoGame.SCORE_PER_QUESTION;
-      result.correct = true;
-    }
-    
-    return result;
-  }
-
-  showResults(question, results) {
-    let anchor = d3.geoCentroid(question);
-    this.questionResult.setInfo(question.properties.NAME, results);
+  showResults(question, cb) {
+    let anchor = question.getCentroid();
+    this.questionResult.setInfo(question);
 
     //show initial results
     let screenPosition = this.getResultsPosition(anchor);
@@ -174,21 +268,11 @@ class GeoGame {
     });
 
     this.questionResult.onNext(() => {
-      this.globe.clearHighlightedCountries();
-      this.globe.draw();
-      this.questionResult.hide();
-
       //stop updating results position
       this.globe.on('draw', null); 
 
-      if(this.round < this.maxRound) {
-        //still more rounds to go
-        this.round++;
-        this.questionIndex++;
-        this.startRound();
-      } else
-        //last round finished
-        this.endGame();
+      if (cb)
+        cb();
     });
   }
 
@@ -208,15 +292,11 @@ class GeoGame {
     };;
   }
 
-  getQuestion(i) {
-    return this.questions[i];
-  }
-
   updateOverlay(question, round, score) {
     if(question)
       this.gameInfoBar.setQuestion(question);
     if(round)
-      this.gameInfoBar.setRound(round + '/' + this.maxRound);
+      this.gameInfoBar.setRound(round + '/' + this.numQuestions);
     if(score !== null)
       this.gameInfoBar.setScore(score.toString());
   }
@@ -226,8 +306,7 @@ class GeoGame {
   }
 }
 
-GeoGame.NUM_QUESTIONS_PER_GAME = 1;
-GeoGame.SCORE_PER_QUESTION = 100;
+GeoGame.NUM_QUESTIONS_PER_GAME = 3;
 GeoGame.ROTATE_TO_CORRECT_COUNTRY_DELAY = 1500;
 
 GeoGame.FPS_UPDATE_INTERVAL = 500;
