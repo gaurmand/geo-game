@@ -1,7 +1,11 @@
 const d3 = require("d3");
 
 class QuestionResult {
-  constructor() {
+  constructor(globe) {
+    this.globe = globe;
+    this.anchor = null;
+    this.nextCb = null;
+
     this.containerNode = d3.create('div')
       .classed('geo-container result-container', true)
       .style('visibility', 'hidden')
@@ -51,15 +55,29 @@ class QuestionResult {
 
     this.nextButton = this.result.append('button')
       .classed('geo-button next', true)
-      .text(QuestionResult.NEXT_BUTTON_TEXT);
+      .text(QuestionResult.NEXT_BUTTON_TEXT)
+      .on('mouseup', () => this.next());
   }
 
-  setInfo(question) {
+  setInfo(question, cb) {
     this.title.text(question.getCountryName());
+
     let score = question.getScore();
     this.proximity.text('+' + score.proximity);
     this.adjacency.text('+' + score.adjacency);
     this.total.text('+' + score.total);
+
+    this.anchor = question.getCentroid();
+    this.nextCb = cb;
+
+    this.globe.on('draw', () => {
+      //update results positions when globe is redrawn
+      let screenPosition = this.getPosition(this.anchor);
+      this.setPosition(screenPosition);
+    });
+
+    //set initial position
+    this.globe.draw();
   }
 
   setPosition(position) {
@@ -67,15 +85,42 @@ class QuestionResult {
       .style('left', position.left + 'px')
   }
 
+  getPosition(anchor) {
+    let screenPosition;
+
+    if (this.globe.isPointVisible(anchor))
+      screenPosition = this.globe.projection(anchor);
+    else {
+      let horizonPoint = this.globe.getHorizonPoint(anchor);
+      screenPosition = this.globe.projection(horizonPoint);
+    }
+
+    return {
+      top: screenPosition[1],
+      left: screenPosition[0]
+    };;
+  }
+
   onNext(next) {
     this.nextButton.on('mouseup', next);
   }
 
+  next() {
+    if (this.nextCb)
+      this.nextCb();
+  }
+
   show() {
+    if(!this.nextCb)
+      this.nextButton.style('display', 'none');
+    else
+      this.nextButton.style('display', 'inline');
+
     this.containerNode.style('visibility', 'visible');
   }
 
   hide() {
+    this.globe.on('draw', null); //stop updating pos
     this.containerNode.style('visibility', 'hidden');
   }
 

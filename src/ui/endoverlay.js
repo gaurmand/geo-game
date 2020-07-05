@@ -1,5 +1,9 @@
 class EndOverlay {
-  constructor(overlay, playCb, menuCb) {
+  constructor(globe, questionResult, overlay, playCb, menuCb) {
+    this.globe = globe;
+    this.questionResult = questionResult;
+    this.playCb = playCb;
+    this.menuCb = menuCb;
     this.overlay = overlay;
     this.questions = [];
 
@@ -45,12 +49,12 @@ class EndOverlay {
     this.playButton = this.buttons.append('button')
       .classed('geo-button play', true)
       .text('Play Again')
-      .on('click', playCb);
+      .on('click', () => this.play());
 
     this.menuButton = this.buttons.append('button')
       .classed('geo-button menu', true)
       .text('Main Menu')
-      .on('click', menuCb);
+      .on('click', () => this.menu());
   }
 
   setQuestionResults(questions) {
@@ -60,18 +64,28 @@ class EndOverlay {
     questions.forEach((question, i) => {
       let questionText = `Q${i+1}: ${question.getCountryName()}`;
       let scoreText = `+${question.getTotalScore()}`;
-      this.appendRow(questionText, scoreText);
+      let cb = () => {
+        this.questionResult.hide();
+        this.questionResult.setInfo(question);
+
+        this.viewQuestion(question, () => {
+          this.questionResult.show();
+        });
+      };
+    
+      this.appendRow(questionText, scoreText, cb);
     });
 
     this.score.text(`+${questions.getTotalScore()}`)
   }
 
-  appendRow(questionText, scoreText) {
+  appendRow(questionText, scoreText, cb) {
     let row = this.tableBody.append('div')
       .classed('end-table-row', true)
 
     row.append('div').classed('question', true).text(questionText);
     row.append('div').classed('score', true).text(scoreText);
+    row.on('click', cb);
   }
 
   clearResults() {
@@ -92,12 +106,39 @@ class EndOverlay {
     this.endContainer.style('display', 'block');
   }
 
+  play() {
+    this.globe.clearHighlightedCountries();
+    this.questionResult.hide();
+    this.globe.draw();
+
+    if(this.playCb)
+      this.playCb();
+  }
+
+  menu() {
+    this.globe.clearHighlightedCountries();
+    this.questionResult.hide();
+    this.globe.draw();
+
+    if(this.menuCb)
+      this.menuCb();
+  }
+
   hide() {
     this.endContainer.style('display', 'none');
   }
 
   node() {
     return this.endContainer.node();
+  }
+
+  viewQuestion(question, cb) {
+    this.globe.clearHighlightedCountries();
+    this.globe.highlightCountry(question.getCountryId(), 'green');
+    if(!question.isCorrect())
+      this.globe.highlightCountry(question.getAnswerCountryId(), 'red');
+      
+    this.globe.rotateToLocation(question.getCentroid(), cb);
   }
 }
 

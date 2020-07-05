@@ -63,6 +63,10 @@ class Question {
     return this.questionCountry.properties.ISO_A3;
   }
 
+  getAnswerCountryId() {
+    return this.answerCountry.properties.ISO_A3;
+  }
+
   getCentroid() {
     return this.centroid;
   }
@@ -133,15 +137,15 @@ class GeoGame {
 
     this.fpsCounter = new FPSCounter(this.overlay);
 
-    this.questionResult = new QuestionResult();
-    this.endOverlay = new EndOverlay(this.overlay, () => {
+    this.questionResult = new QuestionResult(this.globe);
+    this.endOverlay = new EndOverlay(this.globe, this.questionResult, this.overlay, () => {
       //play again
-      this.globe.moveToGamePosition();
       this.endOverlay.hide();
       this.gameInfoBar.show();
       this.startGame();
     }, () => {
       //show start overlay
+      this.globe.moveToStartPosition();
       this.globe.zoomOut(() => {
         this.globe.disableInteraction();
         this.endOverlay.hide();
@@ -197,7 +201,6 @@ class GeoGame {
     this.globe.disableHighlightMode();
     this.endOverlay.setQuestionResults(this.questions);
 
-    this.globe.moveToStartPosition();
     this.globe.zoomOut(() => {
       this.endOverlay.setPosition(this.globe.getMapBBox());
       this.endOverlay.show();
@@ -232,7 +235,7 @@ class GeoGame {
       setTimeout(() => {
         this.globe.rotateToLocation(question.getCentroid(), () => {
           //show results dialog after rotating
-          this.showResults(question, () => {
+          this.questionResult.setInfo(question, () => {
             //start next round/end game
             this.globe.clearHighlightedCountries();
             this.globe.draw();
@@ -245,51 +248,11 @@ class GeoGame {
               //last round finished
               this.endGame();
           });
+          this.questionResult.show();
         });
       }, GeoGame.ROTATE_TO_CORRECT_COUNTRY_DELAY);
 
     });
-  }
-
-  showResults(question, cb) {
-    let anchor = question.getCentroid();
-    this.questionResult.setInfo(question);
-
-    //show initial results
-    let screenPosition = this.getResultsPosition(anchor);
-    this.questionResult.setPosition(screenPosition);
-    this.questionResult.show();
-    this.globe.draw();
-
-    this.globe.on('draw', () => {
-      //update results positions when globe is redrawn
-      let screenPosition = this.getResultsPosition(anchor);
-      this.questionResult.setPosition(screenPosition);
-    });
-
-    this.questionResult.onNext(() => {
-      //stop updating results position
-      this.globe.on('draw', null); 
-
-      if (cb)
-        cb();
-    });
-  }
-
-  getResultsPosition(anchor) {
-    let screenPosition;
-
-    if (this.globe.isPointVisible(anchor))
-      screenPosition = this.globe.projection(anchor);
-    else {
-      let horizonPoint = this.globe.getHorizonPoint(anchor);
-      screenPosition = this.globe.projection(horizonPoint);
-    }
-
-    return {
-      top: screenPosition[1],
-      left: screenPosition[0]
-    };;
   }
 
   updateOverlay(question, round, score) {
