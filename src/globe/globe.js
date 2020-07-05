@@ -152,6 +152,10 @@ class Globe {
     };
   }
 
+  getMapBBox() {
+    return this.map.node().getBBox();
+  }
+
   transform(tx, ty, s = 1) {
     this.svg.attr('transform', `translate(${tx}, ${ty}) scale(${s})`);
   }
