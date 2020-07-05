@@ -250,7 +250,7 @@ class GeoGame {
           });
           this.questionResult.show();
         });
-      }, GeoGame.ROTATE_TO_CORRECT_COUNTRY_DELAY);
+      }, GeoGame.RESULTS_ROTATE_DELAY);
 
     });
   }
@@ -270,7 +270,7 @@ class GeoGame {
 }
 
 GeoGame.NUM_QUESTIONS_PER_GAME = 3;
-GeoGame.ROTATE_TO_CORRECT_COUNTRY_DELAY = 1500;
+GeoGame.RESULTS_ROTATE_DELAY = 300;
 
 GeoGame.FPS_UPDATE_INTERVAL = 500;
 

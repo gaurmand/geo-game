@@ -255,6 +255,6 @@ InteractiveGlobe.ROTATION_SPEED = 250;
 InteractiveGlobe.SCALE_CHANGE_CONSTANT = 1 / 6;
 InteractiveGlobe.ROTATION_SCALE_CONSTANT = 90;
 
-InteractiveGlobe.ROTATION_TRANSITION_LENGTH = 1000;
+InteractiveGlobe.ROTATION_TRANSITION_LENGTH = 700;
 
 module.exports = InteractiveGlobe;
