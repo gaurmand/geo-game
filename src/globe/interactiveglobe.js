@@ -103,22 +103,31 @@ class InteractiveGlobe extends Globe {
     if(!Array.isArray(target) && target.type == 'Feature')
       lonlat = d3.geoCentroid(target);
 
-    this.disableInteraction();
     const currRotate = this.projection.rotate();
     const targetRotate = [-lonlat[0], -lonlat[1], 0];
 
-
-    //draw with isZooming set to true, sets it to use low res data
-    this.isZooming = true;
-    this.draw();
-
-    //make interpolation factories to be used for attribute tweens
-    let globe = this;
     let r = d3.interpolate(currRotate, targetRotate);
 
+    this.transitionGlobe(r, null, InteractiveGlobe.ROTATION_TRANSITION_LENGTH, cb)
+  }
+
+  zoomOut(cb) {
+    let currScale = this.projection.scale();
+    let s = d3.interpolate(currScale, this.initialScale);
+    this.transitionGlobe(null, s, 1000, cb);
+  }
+
+  transitionGlobe(rotationInterpolator, scaleInterpolator, length, cb) {
+    let r = rotationInterpolator;
+    let s = scaleInterpolator;
+
+    let globe = this;
     let interpFactory = function(d) {
       return function(t) {
-        globe.projection.rotate(r(t))
+        if(r)
+          globe.projection.rotate(r(t))
+        if(s)
+          globe.projection.scale(s(t))
         globe.geoGenerator.projection(globe.projection);
         return globe.geoGenerator(d);
       }
@@ -126,35 +135,43 @@ class InteractiveGlobe extends Globe {
 
     let gratInterpFactory = function(d) {
       return function(t) {
-        globe.projection.rotate(r(t))
+        if(r)
+          globe.projection.rotate(r(t))
+        if(s)
+          globe.projection.scale(s(t))
         globe.geoGenerator.projection(globe.projection);
         return globe.geoGenerator(globe.graticule());
       }
     }
+
+    //draw with isZooming set to true, sets it to use low res data
+    this.isZooming = true;
+    this.draw();
+    this.disableInteraction();
 
     //set transitions
     this.map.select('g.countries')
       .selectAll("path")
       .transition()
       .attrTween("d", interpFactory)
-      .duration(InteractiveGlobe.ROTATION_TRANSITION_LENGTH);
+      .duration(length);
 
     this.map.select('g.rivers')
       .selectAll("path")
       .transition()
       .attrTween("d", interpFactory)
-      .duration(InteractiveGlobe.ROTATION_TRANSITION_LENGTH);
+      .duration(length);
 
     this.map.select('g.lakes')
       .selectAll("path")
       .transition()
       .attrTween("d", interpFactory)
-      .duration(InteractiveGlobe.ROTATION_TRANSITION_LENGTH);
+      .duration(length);
 
     this.map.select('g.graticule path')
       .transition()
       .attrTween("d", gratInterpFactory)
-      .duration(InteractiveGlobe.ROTATION_TRANSITION_LENGTH);
+      .duration(length);
 
     //actions after transition is done (need 50ms delay to ensure last draw occurs after)
     setTimeout(() => {
@@ -164,7 +181,7 @@ class InteractiveGlobe extends Globe {
 
       if(cb)
         cb();
-    }, InteractiveGlobe.ROTATION_TRANSITION_LENGTH + 50)
+    }, length + 50)
   }
 
   isInteractionEnabled() {
