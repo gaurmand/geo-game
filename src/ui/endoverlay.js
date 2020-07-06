@@ -63,7 +63,7 @@ class EndOverlay {
 
     questions.forEach((question, i) => {
       let questionText = `Q${i+1}: ${question.getCountryName()}`;
-      let scoreText = `+${question.getTotalScore()}`;
+      let scoreText = `+${question.getTotalScore()}/${EndOverlay.MAX_QUESTION_SCORE}`;
       let cb = () => {
         this.questionResult.hide();
         this.questionResult.setInfo(question);
@@ -76,7 +76,7 @@ class EndOverlay {
       this.appendRow(questionText, scoreText, cb);
     });
 
-    this.score.text(`+${questions.getTotalScore()}`)
+    this.score.text(`+${questions.getTotalScore()}/${EndOverlay.MAX_QUESTION_SCORE*questions.getNumQuestions()}`)
   }
 
   appendRow(questionText, scoreText, cb) {
@@ -137,9 +137,11 @@ class EndOverlay {
     this.globe.highlightCountry(question.getCountryId(), 'green');
     if(!question.isCorrect())
       this.globe.highlightCountry(question.getAnswerCountryId(), 'red');
-      
+
     this.globe.rotateToLocation(question.getCentroid(), cb);
   }
 }
+
+EndOverlay.MAX_QUESTION_SCORE = 120;
 
 module.exports = EndOverlay;

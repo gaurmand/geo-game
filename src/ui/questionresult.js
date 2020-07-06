@@ -25,6 +25,10 @@ class QuestionResult {
 
     this.scoreLabels.append('div')
       .classed('label', true)
+      .text(QuestionResult.ACCURACY_LABEL_TEXT);
+
+    this.scoreLabels.append('div')
+      .classed('label', true)
       .text(QuestionResult.PROXIMITY_LABEL_TEXT);
 
     this.scoreLabels.append('div')
@@ -33,6 +37,9 @@ class QuestionResult {
 
     this.scoreValues = this.scoreBreakdown.append('div')
       .classed('values', true);
+
+    this.accuracy = this.scoreValues.append('div')
+      .classed('value', true);
 
     this.proximity = this.scoreValues.append('div')
       .classed('value', true);
@@ -63,9 +70,10 @@ class QuestionResult {
     this.title.text(question.getCountryName());
 
     let score = question.getScore();
+    this.accuracy.text('+' + score.accuracy);
     this.proximity.text('+' + score.proximity);
     this.adjacency.text('+' + score.adjacency);
-    this.total.text('+' + score.total);
+    this.total.text(`+${score.total}/${QuestionResult.MAX_SCORE}`);
 
     this.anchor = question.getCentroid();
     this.nextCb = cb;
@@ -131,8 +139,11 @@ class QuestionResult {
 
 QuestionResult.PROXIMITY_LABEL_TEXT = 'Proximity:';
 QuestionResult.ADJACENCY_LABEL_TEXT = 'Adjacency:';
+QuestionResult.ACCURACY_LABEL_TEXT = 'Accuracy:';
 QuestionResult.TOTAL_LABEL_TEXT = 'Total:';
 
 QuestionResult.NEXT_BUTTON_TEXT = 'Next';
+
+QuestionResult.MAX_SCORE = 120;
 
 module.exports = QuestionResult;
