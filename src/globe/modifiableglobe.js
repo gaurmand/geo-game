@@ -33,7 +33,7 @@ class ModifiableGlobe extends InteractiveGlobe {
   drawCountries(countries) {
     this.map.select('g.countries')
       .selectAll('path')
-      .data(countries.features, d => d.properties.ISO_A3)
+      .data(countries.features, d => d.properties.NE_ID)
       .join('path')
       .classed('red-highlight', d => this.isHighlightedCountry(d, 'red'))
       .classed('green-highlight', d => this.isHighlightedCountry(d, 'green'))
@@ -173,8 +173,8 @@ class ModifiableGlobe extends InteractiveGlobe {
     this.map.select('g.countries').classed('highlight', false);
   }
 
-  highlightCountry(ISO_A3, colour) {
-    this.highlightedCountries.push({ISO_A3, colour});
+  highlightCountry(NE_ID, colour) {
+    this.highlightedCountries.push({NE_ID, colour});
   }
 
   clearHighlightedCountries() {
@@ -182,7 +182,7 @@ class ModifiableGlobe extends InteractiveGlobe {
   }
 
   isHighlightedCountry(d, colour) {
-    return this.highlightedCountries.findIndex(country => country.ISO_A3 == d.properties.ISO_A3 && country.colour == colour) >= 0
+    return this.highlightedCountries.findIndex(country => country.NE_ID == d.properties.NE_ID && country.colour == colour) >= 0
   }
 
   enablePointMode() {

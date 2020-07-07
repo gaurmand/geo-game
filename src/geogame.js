@@ -40,7 +40,7 @@ class Question {
     this.closesPoint = closestPoint;
     this.distanceToClosesPoint = distance;
 
-    if(answerCountry.properties.ISO_A3 == questionCountry.properties.ISO_A3) {
+    if(answerCountry.properties.NE_ID == questionCountry.properties.NE_ID) {
       //correct country clicked
       this.correctCountry = true;
       this.proximityScore = Question.MAX_PROXIMITY_SCORE;
@@ -75,11 +75,11 @@ class Question {
   }
 
   getCountryId() {
-    return this.questionCountry.properties.ISO_A3;
+    return this.questionCountry.properties.NE_ID;
   }
 
   getAnswerCountryId() {
-    return this.answerCountry.properties.ISO_A3;
+    return this.answerCountry.properties.NE_ID;
   }
 
   getCentroid() {
@@ -345,7 +345,7 @@ class GeoGame {
         this.updateOverlay(null, null, this.score);
       } else 
         //wrong country clicked
-        this.globe.highlightCountry(country.properties.ISO_A3, 'red');
+        this.globe.highlightCountry(country.properties.NE_ID, 'red');
 
       this.globe.draw(); //country highlighting transitions play
 

@@ -4,8 +4,8 @@ class GeoData {
     this.numCountries = this.countries.length;
   }
 
-  findCountry(ISO_A3) {
-    return this.countries.find(country => country.properties.ISO_A3 === ISO_A3);
+  findCountry(NE_ID) {
+    return this.countries.find(country => country.properties.NE_ID === NE_ID);
   }
 
   getRandomCountries(num) {
