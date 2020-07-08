@@ -41,7 +41,7 @@ class Question {
     this.closesPoint = closestPoint;
     this.distanceToClosesPoint = distance;
 
-    if(answerCountry.properties.NE_ID == questionCountry.properties.NE_ID) {
+    if(GeoData.isSameCountry(answerCountry, questionCountry)) {
       //correct country clicked
       this.correctCountry = true;
       this.proximityScore = Question.MAX_PROXIMITY_SCORE;

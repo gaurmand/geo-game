@@ -1,4 +1,25 @@
 class GeoData {
+  static isSameCountry(country1, country2) {
+    let id1 = GeoData.getCountryId(country1);
+    let id2 = GeoData.getCountryId(country2);
+    return (id1 === id2);
+  }
+
+  static getCountryId(country) {
+    let props = country.properties;
+    switch(props.TYPE) {
+      case GeoData.COUNTRY_TYPE.COUNTRY:
+      case GeoData.COUNTRY_TYPE.SOVEREIGN_COUNTRY:
+      case GeoData.COUNTRY_TYPE.DISPUTED:
+      case GeoData.COUNTRY_TYPE.INDETERMINATE:
+        return props.ADM0_A3;
+      case GeoData.COUNTRY_TYPE.DEPENDENCY:
+        return props.SOV_A3;
+      default:
+        throw 'Unknown feature type';
+    }
+  }
+
   static findCountry(NE_ID) {
     return GeoData.ELIGIBILE_QUESTION_COUNTRIES.find(country => country.properties.NE_ID === NE_ID);
   }
