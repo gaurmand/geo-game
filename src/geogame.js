@@ -302,7 +302,7 @@ class GeoGame {
   }
 
   startGame(numQuestions = GeoGame.NUM_QUESTIONS_PER_GAME) {
-    this.questions = new QuestionSet(this.geoData, numQuestions);
+    this.questions = new QuestionSet(numQuestions);
     this.numQuestions = numQuestions;
     this.currQuestion = 0;
     this.score = 0;
@@ -379,10 +379,6 @@ class GeoGame {
       this.gameInfoBar.setRound(round + '/' + this.numQuestions);
     if(score !== null)
       this.gameInfoBar.setScore(score.toString());
-  }
-
-  generateQuestions(numQuestions) {
-    return this.geoData.getRandomCountries(numQuestions);
   }
 }
 
