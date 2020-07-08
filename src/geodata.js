@@ -1,23 +1,18 @@
 class GeoData {
-  constructor() {
-    this.countries = GeoData.COUNTRIES_50M.features.filter(feature => feature.properties.TYPE === 'Country' || feature.properties.TYPE === 'Sovereign country');
-    this.numCountries = this.countries.length;
+  static findCountry(NE_ID) {
+    return GeoData.ELIGIBILE_QUESTION_COUNTRIES.find(country => country.properties.NE_ID === NE_ID);
   }
 
-  findCountry(NE_ID) {
-    return this.countries.find(country => country.properties.NE_ID === NE_ID);
+  static getRandomCountries(num) {
+    return GeoData.getUniqueRandomArr(num, GeoData.NUM_ELIGIBILE_QUESTION_COUNTRIES).map(i => GeoData.getCountry(i));
   }
 
-  getRandomCountries(num) {
-    return GeoData.getUniqueRandomArr(num, this.numCountries).map(i => this.getCountry(i));
+  static getRandomCountry() {
+    return GeoData.getCountry(GeoData.getRandomInt(GeoData.NUM_ELIGIBILE_QUESTION_COUNTRIES));
   }
 
-  getRandomCountry() {
-    return this.getCountry(GeoData.getRandomInt(this.numCountries));
-  }
-
-  getCountry(i) {
-    return this.countries[i];
+  static getCountry(i) {
+    return GeoData.ELIGIBILE_QUESTION_COUNTRIES[i];
   }
 
   static getUniqueRandomArr(numElems, max) {
@@ -53,5 +48,65 @@ GeoData.RIVERS_50M = require('../data/GeoJSON/ne_50m_rivers_lake_centerlines.jso
 GeoData.RIVERS_110M = require('../data/GeoJSON/ne_110m_rivers_lake_centerlines_35.json');
 GeoData.LAKES_50M = require('../data/GeoJSON/ne_50m_lakes.json');
 GeoData.LAKES_110M = require('../data/GeoJSON/ne_110m_lakes_47.json');
+
+GeoData.COUNTRY_TYPE = {
+  COUNTRY: 'Country',
+  SOVEREIGN_COUNTRY: 'Sovereign country',
+  DEPENDENCY: 'Dependency',
+  DISPUTED: 'Disputed',
+  INDETERMINATE: 'Indeterminate' 
+};
+
+GeoData.SOVEREIGN_COUNTRIES = [];
+GeoData.COUNTRIES = [];
+GeoData.DEPENDENCIES = [];
+GeoData.DISPUTED_COUNTRIES = [];
+GeoData.INDETERMINATE_COUNTRIES = [];
+
+GeoData.COUNTRIES_50M.features.forEach(feature => {
+  let props = feature.properties;
+  switch(props.TYPE) {
+    case GeoData.COUNTRY_TYPE.COUNTRY:
+      GeoData.COUNTRIES.push(feature);
+      break;
+    case GeoData.COUNTRY_TYPE.SOVEREIGN_COUNTRY:
+      GeoData.SOVEREIGN_COUNTRIES.push(feature);
+      break;
+    case GeoData.COUNTRY_TYPE.DEPENDENCY:
+      GeoData.DEPENDENCIES.push(feature);
+      break;
+    case GeoData.COUNTRY_TYPE.DISPUTED:
+      GeoData.DISPUTED_COUNTRIES.push(feature);
+      break;
+    case GeoData.COUNTRY_TYPE.INDETERMINATE:
+      GeoData.INDETERMINATE_COUNTRIES.push(feature);
+      break;
+    default:
+      throw 'Unknown feature type';
+  }
+});
+
+console.log(GeoData.SOVEREIGN_COUNTRIES)
+console.log(GeoData.COUNTRIES)
+console.log(GeoData.DEPENDENCIES)
+console.log(GeoData.DISPUTED_COUNTRIES)
+console.log(GeoData.INDETERMINATE_COUNTRIES)
+
+GeoData.ELIGIBILE_QUESTION_COUNTRIES = [...GeoData.SOVEREIGN_COUNTRIES, ...GeoData.COUNTRIES];
+GeoData.ELIGIBILE_QUESTION_COUNTRIES = GeoData.ELIGIBILE_QUESTION_COUNTRIES.filter(feature => {
+  let props = feature.properties;
+  switch(props.TYPE) {
+    case GeoData.COUNTRY_TYPE.COUNTRY:
+      //exclude non-sovereign countries (e.g. Hong Kong, Macao, Curacao, Aruba, etc.)
+      return (props.SOVEREIGNT === props.ADMIN);
+    case GeoData.COUNTRY_TYPE.SOVEREIGN_COUNTRY:
+      return true;
+    default:
+      throw 'Unknown feature type';
+  }
+})
+console.log(GeoData.ELIGIBILE_QUESTION_COUNTRIES)
+
+GeoData.NUM_ELIGIBILE_QUESTION_COUNTRIES = GeoData.ELIGIBILE_QUESTION_COUNTRIES.length;
 
 module.exports = GeoData;

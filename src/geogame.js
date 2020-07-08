@@ -1,5 +1,6 @@
 const d3 = require("d3");
 const GeoGlobe = require('./globe/geoglobe'); 
+const GeoData = require('./geodata');
 
 const StartOverlay = require('./ui/startoverlay');
 const GameInfoBar = require('./ui/gameinfobar');
@@ -196,10 +197,9 @@ Question.EXPONENTIAL_PROXIMITY_SCALE_FACTOR = 0.1;
 
 
 class QuestionSet {
-  constructor(geoData, numQuestions = QuestionSet.DEFAULT_NUM_QUESTIONS) {
+  constructor(numQuestions = QuestionSet.DEFAULT_NUM_QUESTIONS) {
     this.numQuestions = numQuestions;
-    this.geoData = geoData;
-    this.questionCountries = this.geoData.getRandomCountries(numQuestions);
+    this.questionCountries = GeoData.getRandomCountries(numQuestions);
     this.questions = [];
     this.questionCountries.forEach(country => {
       this.questions.push(new Question(country));
@@ -235,11 +235,10 @@ class QuestionSet {
 QuestionSet.DEFAULT_NUM_QUESTIONS = 10;
 
 class GeoGame {
-  constructor(geoData) {
+  constructor() {
     this.globe = new GeoGlobe();
     this.globe.draw();
 
-    this.geoData = geoData;
     this.overlay = d3.create('div')
       .classed('overlay', true);
 
