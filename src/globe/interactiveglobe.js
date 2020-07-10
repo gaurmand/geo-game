@@ -6,6 +6,19 @@ class InteractiveGlobe extends Globe {
   constructor(width, height, padding) {
     super(width, height, padding);
 
+    //set min scale
+    InteractiveGlobe.MIN_SCALE = this.projection.scale();
+
+    //compute exp scale func and inverse
+    const f0 = InteractiveGlobe.MIN_SCALE;
+    const fm = InteractiveGlobe.MAX_SCALE;
+    const xm = 2000;
+    const b = Math.log(fm);
+    const a = (1/xm)*Math.log(fm/f0);
+
+    this.scaleFunc = x => Math.exp(a*x+b);
+    this.invScaleFunc = y => (Math.log(y)-b)/a;
+
     //zoom & pan interactivity
     this.interaction = true;
     this.lastZoom = 0;
@@ -16,30 +29,41 @@ class InteractiveGlobe extends Globe {
     };
     this.isZooming = false;
 
+    //interactive scaling
+    this.finalDraw = null;
+
+    this.svg.on('wheel', () => {
+      if(this.finalDraw)
+        clearTimeout(this.finalDraw);
+
+      if (this.isAutoRotating())
+        this.stopAutoRotate();
+      
+      this.isZooming = true;
+
+      const currScale = this.projection.scale();
+      const scaleFactorChange = -d3.event.deltaY;
+      let newScale = this.computeScale(currScale, scaleFactorChange);
+
+      this.scaleProjection(newScale);
+      this.isZooming = false;
+
+      //draws final globe in no scale event after 100ms
+      this.finalDraw = setTimeout(() => this.draw(), 100);
+    });
+
+    //interactive rotation
     this.zoom = d3.zoom()
-      .scaleExtent([InteractiveGlobe.MIN_SCALE / this.initialScale, InteractiveGlobe.MAX_SCALE / this.initialScale])
       .on('zoom', () => {
-        if (d3.event.sourceEvent instanceof WheelEvent) {
-          //interactive scaling
+        let delta = Date.now() - this.lastZoom
+        if (delta < InteractiveGlobe.ROTATION_UPDATE_INTERVAL)
+          return;
 
-          d3.event.transform.x = this.lastTransform.x;
-          d3.event.transform.y = this.lastTransform.y;
+        let rotation = this.computeRotation(d3.event.transform, this.lastTransform);
+        this.rotateProjection(rotation);
 
-          let newScale = this.computeScale(d3.event.transform);
-          this.scaleProjection(newScale);
-        } else {
-          //interactive rotation
-
-          let delta = Date.now() - this.lastZoom
-          if (delta < InteractiveGlobe.ROTATION_UPDATE_INTERVAL)
-            return;
-
-          let rotation = this.computeRotation(d3.event.transform, this.lastTransform);
-          this.rotateProjection(rotation);
-
-          this.lastZoom = Date.now();
-          this.lastTransform = d3.event.transform;
-        }
+        this.lastZoom = Date.now();
+        this.lastTransform = d3.event.transform;
       })
       .on('start', () => {
         this.isZooming = true;
@@ -80,8 +104,15 @@ class InteractiveGlobe extends Globe {
     return [λ, φ, γ];
   }
 
-  computeScale(transform) {
-    return this.initialScale * transform.k;
+  computeScale(currScale, scaleChangeFactor) {
+    const currScaleFactor = this.invScaleFunc(currScale);
+    const newScaleFactor = currScaleFactor + scaleChangeFactor;
+
+    let newScale = this.scaleFunc(newScaleFactor);
+
+    newScale = newScale > InteractiveGlobe.MAX_SCALE ? InteractiveGlobe.MAX_SCALE : newScale;
+    newScale = newScale < InteractiveGlobe.MIN_SCALE ? InteractiveGlobe.MIN_SCALE : newScale;
+    return newScale;
   }
 
   //set projection rotation [lambda, phi, gamma]
@@ -110,7 +141,7 @@ class InteractiveGlobe extends Globe {
 
   zoomOut(cb) {
     let currScale = this.projection.scale();
-    let s = d3.interpolate(currScale, this.initialScale);
+    let s = d3.interpolate(currScale, InteractiveGlobe.MIN_SCALE);
     this.transitionGlobe(null, s, 1000, cb);
   }
 
@@ -193,7 +224,8 @@ class InteractiveGlobe extends Globe {
   enableInteraction() {
     this.interaction = false;
     this.svg.call(this.zoom)
-      .on('dblclick.zoom', null);
+      .on('dblclick.zoom', null)
+      .on('wheel.zoom', null);
   }
 
   isAutoRotating() {
@@ -245,7 +277,10 @@ InteractiveGlobe.MAX_LATITUDE = 66.5;
 InteractiveGlobe.MIN_LATITUDE = -InteractiveGlobe.MAX_LATITUDE;
 
 InteractiveGlobe.MAX_SCALE = 3500;
-InteractiveGlobe.MIN_SCALE = 300;
+InteractiveGlobe.MIN_SCALE = 100;
+
+InteractiveGlobe.MIN_SCALE_FACTOR = 0;
+InteractiveGlobe.MAX_SCALE_FACTOR = 2000;
 
 InteractiveGlobe.SCALE_THRESHOLD = 1000;
 

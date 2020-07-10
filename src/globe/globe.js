@@ -65,8 +65,6 @@ class Globe {
         [right, bottom]
       ], GeoData.COUNTRIES_110M)
 
-    this.initialScale = this.projection.scale();
-
     this.geoGenerator = d3.geoPath()
       .projection(this.projection)
 
