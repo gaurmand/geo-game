@@ -7,10 +7,15 @@ class ModifiableGlobe extends InteractiveGlobe {
     super(width, height, padding);
 
     this.points = [];
+    this.circles = [];
     this.highlightedCountries = [];
     this.svg.append('g')
       .classed('points', true)
       .attr('fill', 'red');
+
+    this.svg.append('g')
+      .classed('circles', true)
+      .attr('fill', 'none');
   }
 
   //generate and draw map and graticule paths
@@ -19,6 +24,7 @@ class ModifiableGlobe extends InteractiveGlobe {
 
     let data = this.getData();
     this.drawCountries(data.countries);
+    this.drawCircles(this.circles);
     this.drawPoints(this.points);
     this.drawGraticule();
     this.drawRivers(data.rivers);
@@ -48,6 +54,16 @@ class ModifiableGlobe extends InteractiveGlobe {
         if(this.onclick)
           this.onclick(lonlat, d);
       });
+  }
+
+  drawCircles(circles) {
+    this.svg.select('g.circles')
+      .selectAll('path')
+      .data(circles)
+      .join('path')
+      .attr('d', c => this.geoGenerator(c.circle()))
+      .classed('green-circle', c => c.colour == 'green')
+      .classed('red-circle', c => c.colour == 'red');
   }
 
   drawPoints(points) {
@@ -173,12 +189,27 @@ class ModifiableGlobe extends InteractiveGlobe {
     this.map.select('g.countries').classed('highlight', false);
   }
 
-  highlightCountry(NE_ID, colour) {
-    this.highlightedCountries.push({NE_ID, colour});
+  highlightCountry(country, colour) {
+    this.highlightedCountries.push({NE_ID: country.properties.NE_ID, colour});
+
+    let area = ModifiableGlobe.computeArea(country);
+    if(area < ModifiableGlobe.THRESHOLD_AREA)
+      this.addCircle(country, colour);
+  }
+
+  addCircle(country, colour) {
+    let centroid =  d3.geoCentroid(country);
+    let radius =  ModifiableGlobe.computeCircleRadius(country);
+
+    let circle = d3.geoCircle()
+      .center(centroid)
+      .radius(radius);
+    this.circles.push({circle, colour});
   }
 
   clearHighlightedCountries() {
     this.highlightedCountries = [];
+    this.circles = [];
   }
 
   isHighlightedCountry(d, colour) {
@@ -196,6 +227,52 @@ class ModifiableGlobe extends InteractiveGlobe {
   on(event, cb) {
     this['on'+event] = cb;
   }
+
+  transitionGlobe(rotationInterpolator, scaleInterpolator, length, cb) {
+    super.transitionGlobe(rotationInterpolator, scaleInterpolator, length, cb);
+
+    let r = rotationInterpolator;
+    let s = scaleInterpolator;
+
+    let globe = this;
+    let circleInterpFactory = function(c) {
+      return function(t) {
+        if(r)
+          globe.projection.rotate(r(t))
+        if(s)
+          globe.projection.scale(s(t))
+        globe.geoGenerator.projection(globe.projection);
+        return globe.geoGenerator(c.circle());
+      }
+    }
+
+    this.svg.select('g.circles')
+      .selectAll("path")
+      .transition()
+      .attrTween("d", circleInterpFactory)
+      .duration(length);
+  }
+
+  static computeArea(country) {
+    return d3.geoArea(country)*ModifiableGlobe.EARTH_RADIUS*ModifiableGlobe.EARTH_RADIUS; //convert steradians to sq km
+  }
+
+  static computeCircleRadius(country) {
+    let centroid =  d3.geoCentroid(country);
+    let bounds =  d3.geoBounds(country);
+
+    let left = bounds[0][0]
+    let bottom = bounds[0][1];
+    let right = bounds[1][0];
+    let top = bounds[1][1];
+
+    let trdist = d3.geoDistance(centroid, [right, top]);
+    let brdist = d3.geoDistance(centroid, [right, bottom]);
+    let bldist = d3.geoDistance(centroid, [left, bottom]);
+    let tldist = d3.geoDistance(centroid, [left, top]);
+
+    return Math.max(trdist, brdist, bldist, tldist)*180/Math.PI;
+  }
 }
 
 ModifiableGlobe.POINT_TYPE = {
@@ -203,5 +280,8 @@ ModifiableGlobe.POINT_TYPE = {
   INVISIBLE_BEYOND_HORIZON: 2,
   VISIBLE_ON_HORIZON: 3
 }
+
+ModifiableGlobe.EARTH_RADIUS = 6371;
+ModifiableGlobe.THRESHOLD_AREA = 10000;
 
 module.exports = ModifiableGlobe;
