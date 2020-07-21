@@ -79,6 +79,14 @@ class Question {
     return this.questionCountry.properties.NE_ID;
   }
 
+  getQuestionCountry() {
+    return this.questionCountry;
+  }
+
+  getAnswerCountry() {
+    return this.answerCountry;
+  }
+
   getAnswerCountryId() {
     return this.answerCountry.properties.NE_ID;
   }
@@ -336,7 +344,7 @@ class GeoGame {
 
       let questionScore = question.answer(lonlat, country);
 
-      this.globe.highlightCountry(question.getCountryId(), 'green');
+      this.globe.highlightCountry(question.getQuestionCountry(), 'green');
 
       if(question.isCorrect()) {
         //correct country clicked
@@ -344,7 +352,7 @@ class GeoGame {
         this.updateOverlay(null, null, this.score);
       } else 
         //wrong country clicked
-        this.globe.highlightCountry(country.properties.NE_ID, 'red');
+        this.globe.highlightCountry(question.getAnswerCountry(), 'red');
 
       this.globe.draw(); //country highlighting transitions play
 
