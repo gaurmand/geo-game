@@ -68,7 +68,7 @@ class GameInfoBar {
   }
 }
 
-GameInfoBar.QUESTION_PROMPT = 'Where in the goddamn fuck is: ';
+GameInfoBar.QUESTION_PROMPT = 'Where in the world is: ';
 GameInfoBar.SCORE_LABEL_TEXT = 'Score: ';
 GameInfoBar.ROUND_LABEL_TEXT = 'Round: ';
 
