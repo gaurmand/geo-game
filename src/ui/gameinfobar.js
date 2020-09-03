@@ -3,8 +3,9 @@ class GameInfoBar {
     this.overlay = overlay;
 
     this.infoBar = this.overlay.append('div')
-      .classed('info-bar', true)
-      .style('display', 'none')
+      .classed('info-bar translate', true)
+      .style('visibility', 'hidden')
+      .style('transform', 'translateY(-500px)');
 
     this.infoContainer = this.infoBar.append('div')
       .classed('info-container', true);
@@ -44,11 +45,13 @@ class GameInfoBar {
   }
 
   show() {
-    this.infoBar.style('display', 'flex');
+    this.infoBar.style('transform', 'translateY(0px)');
+    this.infoBar.style('visibility', 'visible');
   }
 
   hide() {
-    this.infoBar.style('display', 'none');
+    this.infoBar.style('transform', 'translateY(-500px)');
+    this.infoBar.style('visibility', 'hidden');
   }
 
   setQuestion(text) {

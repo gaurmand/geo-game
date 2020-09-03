@@ -1,15 +1,18 @@
+const QuestionResult = require('./questionresult');
+
 class EndOverlay {
-  constructor(globe, questionResult, overlay, playCb, menuCb) {
+  constructor(globe, overlay, playCb, menuCb) {
     this.globe = globe;
-    this.questionResult = questionResult;
     this.playCb = playCb;
     this.menuCb = menuCb;
     this.overlay = overlay;
     this.questions = [];
+    this.activeqr = null;
 
     this.endContainer = this.overlay.append('div')
-      .classed('geo-container end-container', true)
-      .style('display', 'none');
+      .classed('geo-container end-container fade', true)
+      .style('opacity', '0')
+      .style('visbility', 'hidden');
 
     this.end = this.endContainer.append('div')
       .classed('end', true);
@@ -62,17 +65,20 @@ class EndOverlay {
     this.questions = questions;
 
     questions.forEach((question, i) => {
+      let qr = new QuestionResult(this.globe, question);
       let questionText = `Q${i+1}: ${question.getCountryName()}`;
       let scoreText = `+${question.getTotalScore()}/${EndOverlay.MAX_QUESTION_SCORE}`;
       let cb = () => {
-        this.questionResult.hide();
-        this.questionResult.setInfo(question);
+        if(this.activeqr)
+          this.activeqr.hide();
 
         this.viewQuestion(question, () => {
-          this.questionResult.show();
+          qr.setInitialPosition();
+          qr.show();
+          this.activeqr = qr;
         });
       };
-    
+
       this.appendRow(questionText, scoreText, cb);
     });
 
@@ -103,12 +109,14 @@ class EndOverlay {
   }
 
   show() {
-    this.endContainer.style('display', 'block');
+    this.endContainer.style('opacity', '1');
+    this.endContainer.style('visibility', 'visible');
   }
 
   play() {
     this.globe.clearHighlightedCountries();
-    this.questionResult.hide();
+    if(this.activeqr)
+      this.activeqr.hide();
     this.globe.draw();
 
     if(this.playCb)
@@ -117,7 +125,8 @@ class EndOverlay {
 
   menu() {
     this.globe.clearHighlightedCountries();
-    this.questionResult.hide();
+    if(this.activeqr)
+      this.activeqr.hide();
     this.globe.draw();
 
     if(this.menuCb)
@@ -125,7 +134,8 @@ class EndOverlay {
   }
 
   hide() {
-    this.endContainer.style('display', 'none');
+    this.endContainer.style('opacity', '0');
+    this.endContainer.style('visibility', 'hidden');
   }
 
   node() {

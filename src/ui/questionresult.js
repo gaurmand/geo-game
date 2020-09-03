@@ -1,13 +1,12 @@
 const d3 = require("d3");
 
 class QuestionResult {
-  constructor(globe) {
+  constructor(globe, question, cb) {
     this.globe = globe;
-    this.anchor = null;
-    this.nextCb = null;
+    this.question = question;
 
     this.containerNode = d3.create('div')
-      .classed('geo-container result-container', true)
+      .classed('geo-container result-container fade', true)
       .style('visibility', 'hidden')
       .style('top', '0px');
 
@@ -64,9 +63,8 @@ class QuestionResult {
       .classed('geo-button next', true)
       .text(QuestionResult.NEXT_BUTTON_TEXT)
       .on('mouseup', () => this.next());
-  }
 
-  setInfo(question, cb) {
+    //set info
     this.title.text(question.getCountryName());
 
     let score = question.getScore();
@@ -78,13 +76,15 @@ class QuestionResult {
     this.anchor = question.getCentroid();
     this.nextCb = cb;
 
+    document.body.appendChild(this.containerNode.node());
+  }
+
+  setInitialPosition() {
     this.globe.on('draw', () => {
       //update results positions when globe is redrawn
       let screenPosition = this.getPosition(this.anchor);
       this.setPosition(screenPosition);
     });
-
-    //set initial position
     this.globe.draw();
   }
 
@@ -124,12 +124,20 @@ class QuestionResult {
     else
       this.nextButton.style('display', 'inline');
 
+    this.containerNode.style('opacity', '1');
     this.containerNode.style('visibility', 'visible');
   }
 
-  hide() {
+  hide(remove = true) {
     this.globe.on('draw', null); //stop updating pos
+    this.containerNode.style('opacity', '0');
     this.containerNode.style('visibility', 'hidden');
+  }
+
+  remove() {
+    setTimeout(() => {
+      this.containerNode.node().remove();
+    }, 1000);
   }
 
   node() {

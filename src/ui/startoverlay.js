@@ -4,8 +4,9 @@ class StartOverlay {
 
     //start screen
     this.startContainer = this.overlay.append('div')
-      .classed('start-container', true)
-      .style('display', 'none');
+      .classed('start-container fade', true)
+      .style('opacity', '0')
+      .style('visibility', 'hidden');
 
     this.title = this.startContainer.append('div')
       .classed('title', true)
@@ -33,11 +34,13 @@ class StartOverlay {
   }
 
   show() {
-    this.startContainer.style('display', 'block');
+    this.startContainer.style('opacity', '1');
+    this.startContainer.style('visibility', 'visible');
   }
 
   hide() {
-    this.startContainer.style('display', 'none');
+    this.startContainer.style('opacity', '0');
+    this.startContainer.style('visibility', 'hidden');
   }
 
   node() {

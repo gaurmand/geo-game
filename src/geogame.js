@@ -262,8 +262,7 @@ class GeoGame {
 
     this.fpsCounter = new FPSCounter(this.overlay);
 
-    this.questionResult = new QuestionResult(this.globe);
-    this.endOverlay = new EndOverlay(this.globe, this.questionResult, this.overlay, () => {
+    this.endOverlay = new EndOverlay(this.globe, this.overlay, () => {
       //play again
       this.endOverlay.hide();
       this.gameInfoBar.show();
@@ -292,7 +291,6 @@ class GeoGame {
   append() {
     document.body.appendChild(this.globe.node());
     document.body.appendChild(this.overlay.node());
-    document.body.appendChild(this.questionResult.node());
 
     this.globe.moveToStartPosition();
     this.startOverlay.show();
@@ -360,11 +358,12 @@ class GeoGame {
       setTimeout(() => {
         this.globe.rotateToLocation(question.getCentroid(), () => {
           //show results dialog after rotating
-          this.questionResult.setInfo(question, () => {
+          let qr = new QuestionResult(this.globe, question, () => {
             //start next round/end game
             this.globe.clearHighlightedCountries();
             this.globe.draw();
-            this.questionResult.hide();
+            qr.hide();
+            qr.remove();
             
             if(++this.currQuestion < this.numQuestions)
               //still more rounds to go
@@ -373,7 +372,9 @@ class GeoGame {
               //last round finished
               this.endGame();
           });
-          this.questionResult.show();
+
+          qr.setInitialPosition();
+          qr.show();
         });
       }, GeoGame.RESULTS_ROTATE_DELAY);
 
