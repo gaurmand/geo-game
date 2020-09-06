@@ -1,6 +1,6 @@
 const d3 = require("d3");
 const Globe = require('./globe');
-const GeoData = require('../geodata');
+const GeoData = require('../game/geodata');
 
 class InteractiveGlobe extends Globe {
   constructor(width, height, padding) {

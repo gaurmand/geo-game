@@ -1,5 +1,5 @@
 const d3 = require("d3");
-const GeoData = require('../geodata');
+const GeoData = require('../game/geodata');
 
 class Globe {
   constructor(width, height, padding) {

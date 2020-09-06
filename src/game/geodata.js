@@ -63,12 +63,12 @@ class GeoData {
   }
 }
 
-GeoData.COUNTRIES_50M = require('../data/GeoJSON/ne_50m_admin_0_countries.json');
-GeoData.COUNTRIES_110M = require('../data/GeoJSON/ne_110m_admin_0_countries_58.json');
-GeoData.RIVERS_50M = require('../data/GeoJSON/ne_50m_rivers_lake_centerlines.json');
-GeoData.RIVERS_110M = require('../data/GeoJSON/ne_110m_rivers_lake_centerlines_35.json');
-GeoData.LAKES_50M = require('../data/GeoJSON/ne_50m_lakes.json');
-GeoData.LAKES_110M = require('../data/GeoJSON/ne_110m_lakes_47.json');
+GeoData.COUNTRIES_50M = require('../../data/GeoJSON/ne_50m_admin_0_countries.json');
+GeoData.COUNTRIES_110M = require('../../data/GeoJSON/ne_110m_admin_0_countries_58.json');
+GeoData.RIVERS_50M = require('../../data/GeoJSON/ne_50m_rivers_lake_centerlines.json');
+GeoData.RIVERS_110M = require('../../data/GeoJSON/ne_110m_rivers_lake_centerlines_35.json');
+GeoData.LAKES_50M = require('../../data/GeoJSON/ne_50m_lakes.json');
+GeoData.LAKES_110M = require('../../data/GeoJSON/ne_110m_lakes_47.json');
 
 GeoData.COUNTRY_TYPE = {
   COUNTRY: 'Country',

@@ -1,4 +1,4 @@
-const GeoGame = require('./geogame');
+const GeoGame = require('./game/geogame');
 
 let geoGame = new GeoGame();
 
