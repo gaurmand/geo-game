@@ -100,13 +100,20 @@ class EndOverlay {
   }
 
   setPosition(map) {
-    // console.log(map)
     let globeWidth = Math.round(map.width);
     let windowWidth = window.innerWidth;
-    let left = windowWidth/2 + globeWidth/2 + 30;
-    this.endContainer.style('left', `${left}px`);
 
+    let rightSpace = windowWidth/2 - globeWidth/2;
+    let endContainerWidth = this.endContainer.node().offsetWidth;
+
+    if(endContainerWidth + 40 < rightSpace) {
+      let margin = (rightSpace - endContainerWidth)/2;
+      let left =  windowWidth/2 + globeWidth/2 + margin;
+      this.endContainer.style('left', `${left}px`);
+    } else 
+      this.endContainer.style('right', '20px');
   }
+
 
   show() {
     this.endContainer.style('opacity', '1');
