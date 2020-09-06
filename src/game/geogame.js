@@ -111,49 +111,57 @@ class GeoGame {
     this.globe.enableHighlightMode();
     this.updateOverlay(question.getCountryName(), this.currQuestion+1, this.score);
 
-    this.globe.on('click', (lonlat, country) => {
+    this.gameInfoBar.startTimer(GeoGame.DEFAULT_QUESTION_TIME, () => {
       this.globe.on('click', null);
       this.globe.disableHighlightMode();
-
-      let questionScore = question.answer(lonlat, country);
-
-      this.globe.highlightCountry(question.getQuestionCountry(), 'green');
-
-      if(question.isCorrect()) {
-        //correct country clicked
-        this.score += questionScore.total;
-        this.updateOverlay(null, null, this.score);
-      } else 
-        //wrong country clicked
-        this.globe.highlightCountry(question.getAnswerCountry(), 'red');
-
-      this.globe.draw(); //country highlighting transitions play
-
-      //after transitions finish, rotate globe to show correct country
-      setTimeout(() => {
-        this.globe.rotateToLocation(question.getCentroid(), () => {
-          //show results dialog after rotating
-          let qr = new QuestionResult(this.globe, question, () => {
-            //start next round/end game
-            this.globe.clearHighlightedCountries();
-            this.globe.draw();
-            qr.hide();
-            qr.remove();
-            
-            if(++this.currQuestion < this.numQuestions)
-              //still more rounds to go
-              this.startRound();
-            else
-              //last round finished
-              this.endGame();
-          });
-
-          qr.setInitialPosition();
-          qr.show();
-        });
-      }, GeoGame.RESULTS_ROTATE_DELAY);
-
+      this.handleQuestionResponse(question);
     });
+
+    this.globe.on('click', (lonlat, country) => {
+      this.globe.on('click', null);
+      this.gameInfoBar.stopTimer();
+      this.globe.disableHighlightMode();
+      this.handleQuestionResponse(question, lonlat, country);
+    });
+  }
+
+  handleQuestionResponse(question, lonlat, country) {
+    let questionScore = question.answer(lonlat, country);
+
+    this.globe.highlightCountry(question.getQuestionCountry(), 'green');
+
+    if(question.isCorrect()) {
+      //correct country clicked
+      this.score += questionScore.total;
+      this.updateOverlay(null, null, this.score);
+    } else if(question.getAnswerCountry())
+      //wrong country clicked
+      this.globe.highlightCountry(question.getAnswerCountry(), 'red');
+
+    this.globe.draw(); //country highlighting transitions play
+
+    //after transitions finish, rotate globe to show correct country
+    setTimeout(() => {
+      this.globe.rotateToLocation(question.getCentroid(), () => {
+        //show results dialog after rotating
+        let qr = new QuestionResult(this.globe, question, () => {
+          this.globe.clearHighlightedCountries();
+          this.globe.draw();
+          qr.hide();
+          qr.remove();
+
+          if(++this.currQuestion < this.numQuestions)
+            //still more rounds to go
+            this.startRound();
+          else
+            //last round finished
+            this.endGame();
+        });
+
+        qr.setInitialPosition();
+        qr.show();
+      });
+    }, GeoGame.RESULTS_ROTATE_DELAY);
   }
 
   updateOverlay(question, round, score, gameover) {
@@ -173,6 +181,7 @@ class GeoGame {
 
 GeoGame.NUM_QUESTIONS_PER_GAME = 10;
 GeoGame.RESULTS_ROTATE_DELAY = 300;
+GeoGame.DEFAULT_QUESTION_TIME = 15 //sec
 
 GeoGame.FPS_UPDATE_INTERVAL = 500;
 

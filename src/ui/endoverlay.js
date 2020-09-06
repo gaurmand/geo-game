@@ -152,7 +152,7 @@ class EndOverlay {
   viewQuestion(question, cb) {
     this.globe.clearHighlightedCountries();
     this.globe.highlightCountry(question.getQuestionCountry(), 'green');
-    if(!question.isCorrect())
+    if(!question.isCorrect() && question.getAnswerCountry())
       this.globe.highlightCountry(question.getAnswerCountry(), 'red');
 
     this.globe.rotateToLocation(question.getCentroid(), cb);

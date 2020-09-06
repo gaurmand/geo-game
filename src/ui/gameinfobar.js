@@ -10,6 +10,11 @@ class GameInfoBar {
     this.infoContainer = this.infoBar.append('div')
       .classed('info-container', true);
 
+    //timer
+    this.timer = this.infoContainer
+      .append('div')
+      .classed('timer', true)
+
     //round info
     this.infoContainer.append('div')
       .classed('info round-container', true);
@@ -71,6 +76,33 @@ class GameInfoBar {
 
   node() {
     return this.infoBar.node();
+  }
+
+  startTimer(time, cb) {
+    this.setTime(time);
+    this.timerInterval = setInterval(() => {
+      this.setTime(--time);
+      if(time <= 5)
+        this.timer.style('color', 'red');
+      else 
+        this.timer.style('color', 'white');
+
+      if(time === 0) {
+        this.stopTimer();
+        if(cb)
+          cb();
+      }
+    }, 1000);
+  }
+
+  stopTimer() {
+    clearInterval(this.timerInterval);
+    this.timer.style('color', 'white');
+    this.setTime('--')
+  }
+
+  setTime(time) {
+    this.timer.text(time);
   }
 }
 

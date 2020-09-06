@@ -27,7 +27,20 @@ class Question {
     this.answerCountry = answerCountry;
     this.answerLonLat = answerLonLat;
 
-    return this.computeScore(this.answerLonLat, this.answerCountry, this.questionCountry);
+    if(!answerLonLat)
+      return this.emptyAnswer();
+    else
+      return this.computeScore(this.answerLonLat, this.answerCountry, this.questionCountry);
+  }
+
+  emptyAnswer() {
+    this.correctCountry = false;
+    this.proximityScore = 0;
+    this.accuracyScore = 0;
+    this.adjacencyScore = 0;
+    this.totalScore = 0;
+
+    return this.getScore();
   }
 
   computeScore(answerLonLat, answerCountry, questionCountry) {
