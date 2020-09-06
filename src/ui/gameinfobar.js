@@ -25,8 +25,7 @@ class GameInfoBar {
     this.infoContainer.append('div')
       .classed('info question-container', true);
 
-    this.infoContainer.select('.question-container').append('div')
-      .text(GameInfoBar.QUESTION_PROMPT)
+    this.questionLabel = this.infoContainer.select('.question-container').append('div')
       .classed('label', true);
 
     this.question = this.infoContainer.select('.question-container').append('div')
@@ -66,12 +65,18 @@ class GameInfoBar {
     this.score.text(text);
   }
 
+  setPrompt(prompt) {
+    this.questionLabel.text(prompt);
+  }
+
   node() {
     return this.infoBar.node();
   }
 }
 
-GameInfoBar.QUESTION_PROMPT = 'Where in the world is: ';
+GameInfoBar.QUESTION_PROMPT = 'Where in the world is';
+GameInfoBar.END_GAME_PROMPT = 'GAME OVER';
+
 GameInfoBar.SCORE_LABEL_TEXT = 'Score: ';
 GameInfoBar.ROUND_LABEL_TEXT = 'Round: ';
 

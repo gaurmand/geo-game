@@ -265,14 +265,15 @@ class GeoGame {
     this.endOverlay = new EndOverlay(this.globe, this.overlay, () => {
       //play again
       this.endOverlay.hide();
-      this.gameInfoBar.show();
       this.startGame();
     }, () => {
       //show start overlay
+      this.globe.disableInteraction();
       this.globe.moveToStartPosition();
+      this.gameInfoBar.hide();
+      this.endOverlay.hide();
+
       this.globe.zoomOut(() => {
-        this.globe.disableInteraction();
-        this.endOverlay.hide();
         this.startOverlay.show();
         this.globe.startAutoRotate();
       });
@@ -318,9 +319,8 @@ class GeoGame {
 
   endGame() {
     this.globe.onclick = null;
-    this.updateOverlay('GG', null, null);
+    this.updateOverlay('-', null, null, true);
 
-    this.gameInfoBar.hide();
     this.globe.disableHighlightMode();
     this.endOverlay.setQuestionResults(this.questions);
 
@@ -381,17 +381,22 @@ class GeoGame {
     });
   }
 
-  updateOverlay(question, round, score) {
+  updateOverlay(question, round, score, gameover) {
     if(question)
       this.gameInfoBar.setQuestion(question);
     if(round)
       this.gameInfoBar.setRound(round + '/' + this.numQuestions);
     if(score !== null)
       this.gameInfoBar.setScore(score.toString());
+
+    if(gameover)
+      this.gameInfoBar.setPrompt(GameInfoBar.END_GAME_PROMPT);
+    else
+      this.gameInfoBar.setPrompt(GameInfoBar.QUESTION_PROMPT);
   }
 }
 
-GeoGame.NUM_QUESTIONS_PER_GAME = 3;
+GeoGame.NUM_QUESTIONS_PER_GAME = 10;
 GeoGame.RESULTS_ROTATE_DELAY = 300;
 
 GeoGame.FPS_UPDATE_INTERVAL = 500;
