@@ -7,6 +7,7 @@ const GameInfoBar = require('./ui/gameinfobar');
 const FPSCounter = require('./ui/fpscounter');
 const QuestionResult = require('./ui/questionresult');
 const EndOverlay = require("./ui/endoverlay");
+const About = require("./ui/about");
 
 class Question {
   constructor(country) {
@@ -258,6 +259,14 @@ class GeoGame {
       this.globe.moveToGamePosition();
       this.globe.enableInteraction();
       this.startGame();
+    }, () => {
+      this.startOverlay.hide();
+      this.about.show();
+    });
+
+    this.about = new About(this.overlay, () => {
+      this.about.hide();
+      this.startOverlay.show();
     });
 
     this.fpsCounter = new FPSCounter(this.overlay);

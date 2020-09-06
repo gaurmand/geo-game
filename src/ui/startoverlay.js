@@ -1,5 +1,5 @@
 class StartOverlay {
-  constructor(overlay, startCb) {
+  constructor(overlay, startCb, aboutCb) {
     this.overlay = overlay;
 
     //start screen
@@ -31,6 +31,7 @@ class StartOverlay {
     this.startNode.append('button')
       .text(StartOverlay.ABOUT_BUTTON_TEXT)
       .classed('about start-button', true)
+      .on('mouseup', aboutCb)
   }
 
   show() {
