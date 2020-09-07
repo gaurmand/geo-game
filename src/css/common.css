@@ -1,0 +1,44 @@
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.geo-button {
+  background: #00000000;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  padding: 5px 35px;
+  margin: 5px;
+  font-family: Helvetica, sans-serif;
+  transition: background-color 0.2s ease-out, color 0.2s ease-out;
+  user-select: none;
+}
+
+.geo-button:hover,
+.geo-button:focus {
+  outline: none;
+  background-color: white;
+  color: black;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.geo-container {
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 10px;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/*transitions*/
+.fade {
+  transition: opacity 0.2s ease-out, visibility 0.2s;
+}
+
+.translate {
+  transition: transform 0.5s ease-out, visibility 0.5s;
+}

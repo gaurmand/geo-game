@@ -1,0 +1,80 @@
+.end-container {
+    top: 50%;
+    transform: translateY(-50%);
+    position: absolute;
+    color: white;
+    padding: 10px;
+    font-family: Helvetica, sans-serif;
+    z-index: 2;
+}
+
+.end-container>.end {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 10px;
+}
+
+.end .title {
+    text-align: center;
+    margin: 10px 10px 5px 10px;
+    display: flex;
+    align-items: baseline;
+}
+
+.title .label {
+    font-size: 26px;
+    display: inline;
+    padding: 5px;
+}
+
+.title .score {
+    font-size: 30px;
+    font-weight: bold;
+    display: inline;
+    padding: 5px;
+    padding-left: 15px;
+}
+
+.end-table {
+    margin: 10px;
+    font-size: 16px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.end-table-head .label {
+    font-weight: bold;
+}
+
+.end-table-row,
+.end-table-head {
+    display: flex;
+    justify-content: space-between;
+    border-radius: 10px;
+    padding: 5px;
+    user-select: none;
+}
+
+.end-table-row .question {
+    display: inline;
+    padding-right: 10px;
+}
+
+.end-table-row .score {
+    display: inline;
+    padding-left: 10px;
+}
+
+.end-table-row:hover {
+    outline: none;
+    background-color: white;
+    color: black;
+}
+
+.end button {
+    font-size: 16px;
+    padding: 5px 20px;
+}

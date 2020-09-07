@@ -1,5 +1,12 @@
+require('./css/about.css');
+require('./css/common.css');
+require('./css/endoverlay.css');
+require('./css/gameinfobar.css');
+require('./css/globe.css');
+require('./css/questionresult.css');
+require('./css/startoverlay.css');
+
 const GeoGame = require('./game/geogame');
-require('./css/style.css');
 
 let geoGame = new GeoGame();
 

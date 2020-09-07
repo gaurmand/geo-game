@@ -1,0 +1,29 @@
+.countries.highlight path:hover {
+    fill: #00ffff;
+}
+
+.countries path {
+    transition: fill 0.7s;
+}
+
+.countries path.red-highlight,
+.countries path.red-highlight:hover {
+    fill: #ff704d;
+    transition: fill 1s cubic-bezier(0.65, 2.87, 0.54, -1.85) 0.1s;
+}
+
+.countries path.green-highlight,
+.countries path.green-highlight:hover {
+    fill: #1aff66;
+    transition: fill 1s cubic-bezier(0.65, 2.87, 0.54, -1.85) 0.1s;
+}
+
+.circles path.green-circle {
+    stroke: #1aff66;
+    stroke-width: 2;
+}
+
+.circles path.red-circle {
+    stroke: #ff704d;
+    stroke-width: 2;
+}

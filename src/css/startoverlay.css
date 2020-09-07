@@ -1,0 +1,52 @@
+.start-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    padding: 20px 0px;
+    width: 100%;
+}
+
+.start {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-top: 1px solid white;
+    border-bottom: 1px solid white;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+}
+
+.start>button.start-button {
+    display: block;
+    background: #00000000;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    width: 20%;
+    padding: 5px 35px;
+    margin: 5px;
+    font-family: Helvetica, sans-serif;
+    font-size: 24px;
+    transition: background-color 0.2s ease-out, color 0.2s ease-out;
+    user-select: none;
+}
+
+.start-container>.title {
+    color: white;
+    font-family: Helvetica, sans-serif;
+    font-size: 60px;
+    position: relative;
+    text-align: center;
+    padding: 5px;
+    user-select: none;
+}
+
+.start>button.start-button:hover,
+.start>button.start-button:focus {
+    outline: none;
+    background-color: white;
+    color: black;
+}

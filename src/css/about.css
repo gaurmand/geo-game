@@ -1,0 +1,51 @@
+.about-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    padding: 10px;
+    transform: translate(-50%, -50%);
+    max-width: 50%;
+}
+
+.about-container>.about {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid white;
+    border-radius: 10px;
+    margin: 10px;
+}
+
+.about>.about-section {
+    margin: 15px;
+}
+
+.about-section>p,
+.about-section>ul {
+    margin: 5px;
+}
+
+.about-section>.question {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.about-section>.answer {
+    font-size: 16px;
+}
+
+.about a {
+    color: #b3ecff;
+}
+
+.about a:hover {
+    color: rgb(85, 26, 139);
+}
+
+.about .back-button-container {
+    display: flex;
+    justify-content: center;
+}
+
+.about .back-button {
+    font-size: 18px;
+    width: 100%;
+}
