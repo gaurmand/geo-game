@@ -72,11 +72,9 @@ class About {
           Planned features
         </p>
         <ul class="answer">
-          <li>Timer</li>
-          <li>Clickable oceans</li>
+          <li>Adjacent country scoring</li>
           <li>Difficulty</li>
           <li>Set up game menu - for choosing number of rounds/difficulty</li>
-          <li>Adjacent country scoring</li>
           <li>City guessing mode</li>
           <li>Map style options</li>
           <li>Seeds</li>
