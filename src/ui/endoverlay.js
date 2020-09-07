@@ -8,6 +8,7 @@ class EndOverlay {
     this.overlay = overlay;
     this.questions = [];
     this.activeqr = null;
+    this.disabled = false;
 
     this.endContainer = this.overlay.append('div')
       .classed('geo-container end-container fade', true)
@@ -69,6 +70,11 @@ class EndOverlay {
       let questionText = `Q${i+1}: ${question.getCountryName()}`;
       let scoreText = `+${question.getTotalScore()}/${EndOverlay.MAX_QUESTION_SCORE}`;
       let cb = () => {
+        if(this.disabled)
+          return;
+        
+        this.disable();
+
         if(this.activeqr)
           this.activeqr.hide();
 
@@ -76,6 +82,7 @@ class EndOverlay {
           qr.setInitialPosition();
           qr.show();
           this.activeqr = qr;
+          this.enable();
         });
       };
 
@@ -156,6 +163,16 @@ class EndOverlay {
       this.globe.highlightCountry(question.getAnswerCountry(), 'red');
 
     this.globe.rotateToLocation(question.getCentroid(), cb);
+  }
+
+  disable(delayedEnable) {
+    this.disabled = true;
+    if (delayedEnable)
+      setTimeout(() => this.disabled=false, 750)
+  }
+
+  enable() {
+    this.disabled = false;
   }
 }
 
