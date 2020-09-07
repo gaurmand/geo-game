@@ -5,8 +5,9 @@
   "browser": "index.js",
   "private": "true",
   "scripts": {
-    "test": "webpack && start ./dist/test.html",
-    "build": "webpack",
+    "test": "webpack --env.MODE=development && start ./dist/test.html",
+    "build-dev": "webpack --env.MODE=development",
+    "build-prod": "webpack --env.MODE=production",
     "build-adjacency-list": "node ./data/adjacency.js"
   },
   "repository": {
