@@ -29,6 +29,8 @@ class Question {
 
     if(!answerLonLat)
       return this.emptyAnswer();
+    else if(!answerCountry)
+      return this.oceanAnswer(this.answerLonLat, this.questionCountry);
     else
       return this.computeScore(this.answerLonLat, this.answerCountry, this.questionCountry);
   }
@@ -39,6 +41,23 @@ class Question {
     this.accuracyScore = 0;
     this.adjacencyScore = 0;
     this.totalScore = 0;
+
+    return this.getScore();
+  }
+
+  oceanAnswer(answerLonLat, questionCountry) {
+    this.correctCountry = false;
+    this.accuracyScore = 0;
+    this.adjacencyScore = 0;
+
+    let {
+      closestPoint,
+      distance
+    } = Question.getClosestPointInCountry(answerLonLat, questionCountry.geometry);
+    this.closesPoint = closestPoint;
+    this.distanceToClosesPoint = distance;
+    this.proximityScore = Question.computeProximityScoreExponential(distance);
+    this.totalScore = this.proximityScore;
 
     return this.getScore();
   }

@@ -56,6 +56,21 @@ class ModifiableGlobe extends InteractiveGlobe {
       });
   }
 
+  drawGraticule() {
+    this.map.select('g.graticule path')
+      .attr('d', this.geoGenerator(this.graticule()))
+      .on('click', () => {
+        console.log('graticule');
+        let lonlat = this.projection.invert([event.clientX, event.clientY]);
+
+        if(this.pointMode)
+          this.addPoint(lonlat);
+        
+        if(this.onclick)
+          this.onclick(lonlat);
+      });
+  }
+
   drawCircles(circles) {
     this.svg.select('g.circles')
       .selectAll('path')
