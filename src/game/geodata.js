@@ -24,6 +24,15 @@ class GeoData {
     return GeoData.ELIGIBILE_QUESTION_COUNTRIES.find(country => country.properties.NE_ID === NE_ID);
   }
 
+  static isAdjacentCountry(c1, c2) {
+    let adjacencyList = GeoData.ADJACENCY_MAP[c1.properties.NE_ID];
+    if(!adjacencyList) {
+      console.error(`isAdjacentCountry() error: ${c1.properties.NAME} (${c1.properties.NE_ID}) adjacency list not found`)
+      return false;
+    }
+    return GeoData.ADJACENCY_MAP[c1.properties.NE_ID].find(NE_ID => NE_ID === c2.properties.NE_ID);
+  }
+
   static getRandomCountries(num) {
     return GeoData.getUniqueRandomArr(num, GeoData.NUM_ELIGIBILE_QUESTION_COUNTRIES).map(i => GeoData.getCountry(i));
   }
@@ -107,11 +116,11 @@ GeoData.COUNTRIES_50M.features.forEach(feature => {
   }
 });
 
-console.log(GeoData.SOVEREIGN_COUNTRIES)
-console.log(GeoData.COUNTRIES)
-console.log(GeoData.DEPENDENCIES)
-console.log(GeoData.DISPUTED_COUNTRIES)
-console.log(GeoData.INDETERMINATE_COUNTRIES)
+// console.log(GeoData.SOVEREIGN_COUNTRIES)
+// console.log(GeoData.COUNTRIES)
+// console.log(GeoData.DEPENDENCIES)
+// console.log(GeoData.DISPUTED_COUNTRIES)
+// console.log(GeoData.INDETERMINATE_COUNTRIES)
 
 GeoData.ELIGIBILE_QUESTION_COUNTRIES = [...GeoData.SOVEREIGN_COUNTRIES, ...GeoData.COUNTRIES];
 GeoData.ELIGIBILE_QUESTION_COUNTRIES = GeoData.ELIGIBILE_QUESTION_COUNTRIES.filter(feature => {
@@ -126,8 +135,10 @@ GeoData.ELIGIBILE_QUESTION_COUNTRIES = GeoData.ELIGIBILE_QUESTION_COUNTRIES.filt
       throw 'Unknown feature type';
   }
 })
-console.log(GeoData.ELIGIBILE_QUESTION_COUNTRIES)
+console.log(GeoData.ELIGIBILE_QUESTION_COUNTRIES.map(country => country.properties.NAME).sort())
 
 GeoData.NUM_ELIGIBILE_QUESTION_COUNTRIES = GeoData.ELIGIBILE_QUESTION_COUNTRIES.length;
+
+GeoData.ADJACENCY_MAP = require('../../data/NECountryAdjacencyList.json');
 
 module.exports = GeoData;

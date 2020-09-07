@@ -6,7 +6,8 @@
   "private": "true",
   "scripts": {
     "test": "webpack && start test.html",
-    "build": "webpack"
+    "build": "webpack",
+    "build-adjacency-list": "node ./data/adjacency.js"
   },
   "repository": {
     "type": "git",
