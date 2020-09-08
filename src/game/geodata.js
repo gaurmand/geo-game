@@ -26,8 +26,22 @@ class GeoData {
     return GeoData.getUniqueRandomArr(num, GeoData.NUM_ELIGIBILE_COUNTRIES).map(i => GeoData.getEligibleCountry(i));
   }
 
-  static getRandomCountry() {
-    return GeoData.getEligibleCountry(GeoData.getRandomInt(GeoData.NUM_ELIGIBILE_COUNTRIES));
+  static getRandomCountry(difficulty) {
+    let id = 0;
+    switch(difficulty) {
+      case GeoData.COUNTRY_DIFFICULTY.EASY:
+        id = GeoData.EASY_COUNTRIES[GeoData.getRandomInt(GeoData.NUM_EASY_COUNTRIES)];
+        break;
+      case GeoData.COUNTRY_DIFFICULTY.NORMAL:
+        id = GeoData.NORMAL_COUNTRIES[GeoData.getRandomInt(GeoData.NUM_NORMAL_COUNTRIES)];
+        break;
+      case GeoData.COUNTRY_DIFFICULTY.HARD:
+        id = GeoData.HARD_COUNTRIES[GeoData.getRandomInt(GeoData.NUM_HARD_COUNTRIES)];
+        break;
+      default:
+        id = GeoData.ELIGIBLE_COUNTRIES[GeoData.getRandomInt(GeoData.NUM_ELIGIBILE_COUNTRIES)];
+    }
+    return GeoData.ID_TO_COUNTRY_MAP[id];
   }
 
   static getEligibleCountry(i) {
@@ -70,10 +84,25 @@ GeoData.LAKES_110M = require('../../data/NEData/GeoJSON/ne_110m_lakes_47.json');
 
 GeoData.ADJACENCY_MAP = require('../../data/AdjacencyData/NECountryAdjacencyList.json');
 
-GeoData.ELIGIBLE_COUNTRIES = require('../../data/OptimizedNEData/eligible_countries_ids.json');
+GeoData.ELIGIBLE_COUNTRIES = require('../../data/OptimizedNEData/difficulty_countries_ids.json');
+GeoData.EASY_COUNTRIES = GeoData.ELIGIBLE_COUNTRIES.easy;
+GeoData.NORMAL_COUNTRIES = GeoData.ELIGIBLE_COUNTRIES.normal;
+GeoData.HARD_COUNTRIES = GeoData.ELIGIBLE_COUNTRIES.hard;
+
+GeoData.ELIGIBLE_COUNTRIES = [...GeoData.ELIGIBLE_COUNTRIES.easy, ...GeoData.ELIGIBLE_COUNTRIES.normal, ...GeoData.ELIGIBLE_COUNTRIES.hard]
+
 GeoData.NUM_ELIGIBILE_COUNTRIES = GeoData.ELIGIBLE_COUNTRIES.length;
+GeoData.NUM_EASY_COUNTRIES = GeoData.EASY_COUNTRIES.length;
+GeoData.NUM_NORMAL_COUNTRIES = GeoData.NORMAL_COUNTRIES.length;
+GeoData.NUM_HARD_COUNTRIES = GeoData.HARD_COUNTRIES.length;
 
 GeoData.ID_TO_COUNTRY_MAP = {};
 GeoData.COUNTRIES_50M.features.forEach(feature => GeoData.ID_TO_COUNTRY_MAP[feature.properties.NE_ID] = feature);
+
+GeoData.COUNTRY_DIFFICULTY = {
+  EASY: 1,
+  NORMAL: 2,
+  HARD: 3
+};
 
 module.exports = GeoData;

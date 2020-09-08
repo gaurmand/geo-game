@@ -238,13 +238,10 @@ Question.EXPONENTIAL_PROXIMITY_SCALE_FACTOR = 0.1;
 
 
 class QuestionSet {
-  constructor(numQuestions = QuestionSet.DEFAULT_NUM_QUESTIONS) {
+  constructor(numQuestions, difficultyMode = QuestionSet.NORMAL_MODE) {
     this.numQuestions = numQuestions;
-    this.questionCountries = GeoData.getRandomCountries(numQuestions);
-    this.questions = [];
-    this.questionCountries.forEach(country => {
-      this.questions.push(new Question(country));
-    });
+    this.questionCountries = QuestionSet.generateQuestions(numQuestions, difficultyMode);
+    this.questions = this.questionCountries.map(country => new Question(country));
   }
 
   getQuestion(i) {
@@ -272,8 +269,46 @@ class QuestionSet {
   forEach(cb) {
     this.questions.forEach((question, i, arr) => cb(question, i, arr));
   }
+
+  static generateQuestions(numQuestions, difficultyMode) {
+    let questionCountries = [];
+    while(questionCountries.length < numQuestions) {
+      let countryDifficulty = QuestionSet.chooseQuestionDifficulty(difficultyMode);
+      let country = GeoData.getRandomCountry(countryDifficulty);
+      if(questionCountries.findIndex(qCountry => qCountry.properties.NE_ID === country.properties.NE_ID) === -1)
+        questionCountries.push(country);
+    }
+    return questionCountries;
+  }
+
+  static chooseQuestionDifficulty(mode) {
+    let rand = Math.random();
+    if(rand < mode.EASY)
+      return GeoData.COUNTRY_DIFFICULTY.EASY;
+    else if (rand < (mode.EASY + mode.NORMAL))
+      return GeoData.COUNTRY_DIFFICULTY.NORMAL;
+    else 
+      return GeoData.COUNTRY_DIFFICULTY.HARD;
+  }
 }
-QuestionSet.DEFAULT_NUM_QUESTIONS = 10;
+
+QuestionSet.EASY_MODE = {
+  EASY: 0.6,
+  NORMAL: 0.3,
+  HARD: 0.1
+};
+
+QuestionSet.NORMAL_MODE = {
+  EASY: 1,
+  NORMAL: 0,
+  HARD: 0
+};
+
+QuestionSet.HARD_MODE = {
+  EASY: 0.2,
+  NORMAL: 0.4,
+  HARD: 0.4
+};
 
 module.exports = {
   Question, 
