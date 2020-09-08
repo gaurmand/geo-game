@@ -231,7 +231,7 @@ class ModifiableGlobe extends InteractiveGlobe {
 
   addCircle(country, colour) {
     let centroid =  d3.geoCentroid(country);
-    let radius =  ModifiableGlobe.computeCircleRadius(country);
+    let radius = Math.max(ModifiableGlobe.computeBoundingCircleRadius(country), ModifiableGlobe.MIN_CIRCLE_RADIUS)*180/Math.PI;
 
     let circle = d3.geoCircle()
       .center(centroid)
@@ -333,7 +333,7 @@ class ModifiableGlobe extends InteractiveGlobe {
     return d3.geoArea(country)*ModifiableGlobe.EARTH_RADIUS*ModifiableGlobe.EARTH_RADIUS; //convert steradians to sq km
   }
 
-  static computeCircleRadius(country) {
+  static computeBoundingCircleRadius(country) {
     let centroid =  d3.geoCentroid(country);
     let bounds =  d3.geoBounds(country);
 
@@ -347,7 +347,7 @@ class ModifiableGlobe extends InteractiveGlobe {
     let bldist = d3.geoDistance(centroid, [left, bottom]);
     let tldist = d3.geoDistance(centroid, [left, top]);
 
-    return Math.max(trdist, brdist, bldist, tldist)*180/Math.PI;
+    return Math.max(trdist, brdist, bldist, tldist);
   }
 }
 
@@ -357,7 +357,8 @@ ModifiableGlobe.POINT_TYPE = {
   VISIBLE_ON_HORIZON: 3
 }
 
-ModifiableGlobe.EARTH_RADIUS = 6371;
-ModifiableGlobe.THRESHOLD_AREA = 10000;
+ModifiableGlobe.EARTH_RADIUS = 6371; //km
+ModifiableGlobe.THRESHOLD_AREA = 10000; //sq km
+ModifiableGlobe.MIN_CIRCLE_RADIUS = 100/ModifiableGlobe.EARTH_RADIUS; //100km in angular distance
 
 module.exports = ModifiableGlobe;
