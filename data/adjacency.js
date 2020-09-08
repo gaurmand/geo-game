@@ -1,8 +1,12 @@
-const fs = require('fs');
+const {
+  readJSON,
+  writeJSON
+} = require('./common.js');
+
 const path = require('path');
 
-var countries = JSON.parse(fs.readFileSync(path.join(__dirname,'/GeoJSON/ne_50m_admin_0_countries.json'), 'utf-8')).features;
-var nameAdjacencyMap = JSON.parse(fs.readFileSync(path.join(__dirname,'/country_adj.json'), 'utf-8'));
+let countries = readJSON(path.join(__dirname,'/NEData/GeoJSON/ne_50m_admin_0_countries.json')).features;
+let nameAdjacencyMap = readJSON(path.join(__dirname,'/AdjacencyData/country_adj.json'));
 
 let countriesMap = {};
 countries.forEach(country => countriesMap[country.properties.NAME] = country.properties.NE_ID);
@@ -21,4 +25,4 @@ for (const [countryName, adjacentList] of Object.entries(nameAdjacencyMap)) {
 }
 
 // console.log(idAdjacencyMap)
-fs.writeFileSync(path.join(__dirname,'/NECountryAdjacencyList.json'), JSON.stringify(idAdjacencyMap));
+writeJSON(idAdjacencyMap, path.join(__dirname,'/AdjacencyData/NECountryAdjacencyList.json'));

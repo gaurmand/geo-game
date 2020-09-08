@@ -8,7 +8,8 @@
     "test": "webpack --env.MODE=development && start ./dist/test.html",
     "build-dev": "webpack --env.MODE=development",
     "build-prod": "webpack --env.MODE=production",
-    "build-adjacency-list": "node ./data/adjacency.js"
+    "build-adjacency-list": "node ./data/adjacency.js",
+    "build-ne-data": "node ./data/optimizeNEData.js"
   },
   "repository": {
     "type": "git",
