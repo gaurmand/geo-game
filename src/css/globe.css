@@ -27,3 +27,16 @@
     stroke: #ff704d;
     stroke-width: 2;
 }
+
+/*points*/
+.points > circle {
+    fill: red;
+}
+
+/*lines*/
+
+.lines {
+    fill-opacity: 0;
+    stroke-width: 1.5;
+    stroke: red;
+}

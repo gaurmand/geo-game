@@ -138,6 +138,14 @@ class GeoGame {
       //wrong country clicked
       this.globe.highlightCountry(question.getAnswerCountry(), 'red');
 
+    if(question.getClosestPoint())
+      this.globe.addLine(lonlat, question.getClosestPoint())
+
+    if(!question.isCorrect() && lonlat) {
+      this.globe.addPoint(lonlat);
+      this.globe.addPoint(question.getClosestPoint());
+    }
+    
     this.globe.draw(); //country highlighting transitions play
 
     //after transitions finish, rotate globe to show correct country
@@ -146,6 +154,8 @@ class GeoGame {
         //show results dialog after rotating
         let qr = new QuestionResult(this.globe, question, () => {
           this.globe.clearHighlightedCountries();
+          this.globe.clearLines();
+          this.globe.clearPoints();
           this.globe.draw();
           qr.hide();
           qr.remove();

@@ -8,14 +8,18 @@ class ModifiableGlobe extends InteractiveGlobe {
 
     this.points = [];
     this.circles = [];
+    this.lines = [];
     this.highlightedCountries = [];
-    this.svg.append('g')
-      .classed('points', true)
-      .attr('fill', 'red');
 
     this.svg.append('g')
       .classed('circles', true)
       .attr('fill', 'none');
+
+    this.svg.append('g')
+      .classed('lines', true)
+
+    this.svg.append('g')
+      .classed('points', true)
   }
 
   //generate and draw map and graticule paths
@@ -26,6 +30,7 @@ class ModifiableGlobe extends InteractiveGlobe {
     this.drawCountries(data.countries);
     this.drawCircles(this.circles);
     this.drawPoints(this.points);
+    this.drawLines(this.lines);
     this.drawGraticule();
     this.drawRivers(data.rivers);
     this.drawLakes(data.lakes);
@@ -88,11 +93,19 @@ class ModifiableGlobe extends InteractiveGlobe {
       .join('circle')
       .attr('cx', point => this.getPointCoords(point)[0])
       .attr('cy', point => this.getPointCoords(point)[1])
-      .attr('r', '5')
+      .attr('r', '3')
       .on('click', d => {
         if(this.pointMode) 
           this.removePoint(d);
       });
+  }
+
+  drawLines(lines) {
+    this.svg.select('g.lines')
+      .selectAll('path')
+      .data(lines)
+      .join('path')
+      .attr('d', line => this.geoGenerator(line));
   }
 
   addPoint(lonlat, type = ModifiableGlobe.POINT_TYPE.VISIBLE_ON_HORIZON) {
@@ -106,6 +119,10 @@ class ModifiableGlobe extends InteractiveGlobe {
       throw 'Point not found';
     this.points.splice(i, 1);
     this.drawPoints(this.points);
+  }
+
+  clearPoints() {
+    this.points = [];
   }
 
   getProjectionCenter() {
@@ -239,6 +256,20 @@ class ModifiableGlobe extends InteractiveGlobe {
     this.pointMode = false;
   }
 
+  addLine(lonlat1, lonlat2) {
+    this.lines.push({
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: [lonlat1, lonlat2]
+      }
+    });
+  }
+
+  clearLines() {
+    this.lines = [];
+  }
+
   on(event, cb) {
     this['on'+event] = cb;
   }
@@ -261,10 +292,40 @@ class ModifiableGlobe extends InteractiveGlobe {
       }
     }
 
+    let lineInterpFactory = function(l) {
+      return function(t) {
+        if(r)
+          globe.projection.rotate(r(t))
+        if(s)
+          globe.projection.scale(s(t))
+        globe.geoGenerator.projection(globe.projection);
+        return globe.geoGenerator(l);
+      }
+    }
+
+    let pointInterpFactory = function(point, index) {
+      return function(t) {
+        return globe.getPointCoords(point)[index];
+      }
+    }
+
     this.svg.select('g.circles')
       .selectAll("path")
       .transition()
       .attrTween("d", circleInterpFactory)
+      .duration(length);
+
+    this.svg.select('g.lines')
+      .selectAll('path')
+      .transition()
+      .attrTween("d", lineInterpFactory)
+      .duration(length);
+
+    this.svg.select('g.points')
+      .selectAll('circle')
+      .transition()
+      .attrTween("cx", point => pointInterpFactory(point, 0))
+      .attrTween("cy", point => pointInterpFactory(point, 1))
       .duration(length);
   }
 

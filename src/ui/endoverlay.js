@@ -129,6 +129,9 @@ class EndOverlay {
 
   play() {
     this.globe.clearHighlightedCountries();
+    this.globe.clearLines();
+    this.globe.clearPoints();
+
     if(this.activeqr)
       this.activeqr.hide();
     this.globe.draw();
@@ -139,6 +142,9 @@ class EndOverlay {
 
   menu() {
     this.globe.clearHighlightedCountries();
+    this.globe.clearLines();
+    this.globe.clearPoints();
+
     if(this.activeqr)
       this.activeqr.hide();
     this.globe.draw();
@@ -158,9 +164,20 @@ class EndOverlay {
 
   viewQuestion(question, cb) {
     this.globe.clearHighlightedCountries();
+    this.globe.clearLines();
+    this.globe.clearPoints();
+
     this.globe.highlightCountry(question.getQuestionCountry(), 'green');
     if(!question.isCorrect() && question.getAnswerCountry())
       this.globe.highlightCountry(question.getAnswerCountry(), 'red');
+
+    if(question.getClosestPoint())
+      this.globe.addLine(question.getAnswerLonlat(), question.getClosestPoint())
+
+    if(!question.isCorrect() && question.getAnswerLonlat()) {
+      this.globe.addPoint(question.getAnswerLonlat());
+      this.globe.addPoint(question.getClosestPoint());
+    }
 
     this.globe.rotateToLocation(question.getCentroid(), cb);
   }

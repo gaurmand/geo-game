@@ -51,10 +51,10 @@ class Question {
     this.adjacencyScore = 0;
 
     let {
-      closestPoint,
+      point,
       distance
     } = Question.getClosestPointInCountry(answerLonLat, questionCountry.geometry);
-    this.closesPoint = closestPoint;
+    this.closestPoint = point;
     this.distanceToClosesPoint = distance;
     this.proximityScore = Question.computeProximityScoreExponential(distance);
     this.totalScore = this.proximityScore;
@@ -63,13 +63,6 @@ class Question {
   }
 
   computeScore(answerLonLat, answerCountry, questionCountry) {
-    let {
-      closestPoint,
-      distance
-    } = Question.getClosestPointInCountry(answerLonLat, questionCountry.geometry);
-    this.closesPoint = closestPoint;
-    this.distanceToClosesPoint = distance;
-
     if (GeoData.isSameCountry(answerCountry, questionCountry)) {
       //correct country clicked
       this.correctCountry = true;
@@ -78,6 +71,13 @@ class Question {
       this.adjacencyScore = 0;
     } else {
       //incorrect country clicked
+      let {
+        point,
+        distance
+      } = Question.getClosestPointInCountry(answerLonLat, questionCountry.geometry);
+      this.closestPoint = point;
+      this.distanceToClosesPoint = distance;
+
       this.proximityScore = Question.computeProximityScoreExponential(distance);
       this.adjacencyScore = (GeoData.isAdjacentCountry(answerCountry, questionCountry) ? Question.ADJACENCY_BONUS : 0);
       this.accuracyScore = 0;
@@ -112,6 +112,10 @@ class Question {
     return this.questionCountry;
   }
 
+  getAnswerLonlat() {
+    return this.answerLonLat;
+  }
+
   getAnswerCountry() {
     return this.answerCountry;
   }
@@ -130,6 +134,10 @@ class Question {
 
   isCorrect() {
     return this.correctCountry;
+  }
+
+  getClosestPoint() {
+    return this.closestPoint;
   }
 
   static getClosestPointInCountry(point, geometry) {
