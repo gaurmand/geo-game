@@ -299,9 +299,9 @@ QuestionSet.EASY_MODE = {
 };
 
 QuestionSet.NORMAL_MODE = {
-  EASY: 1,
-  NORMAL: 0,
-  HARD: 0
+  EASY: 0.3,
+  NORMAL: 0.5,
+  HARD: 0.2
 };
 
 QuestionSet.HARD_MODE = {
