@@ -86,7 +86,7 @@ class GeoGame {
 
     this.globe.moveToStartPosition();
     this.startOverlay.show();
-    // this.globe.startAutoRotate();
+    this.globe.startAutoRotate();
   }
 
   updateFPSCounter() {
