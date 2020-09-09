@@ -72,8 +72,6 @@ class About {
           Planned features
         </p>
         <ul class="answer">
-          <li>Difficulty</li>
-          <li>Set up game menu - for choosing number of rounds/difficulty</li>
           <li>City guessing mode</li>
           <li>Map style options</li>
           <li>Seeds</li>
