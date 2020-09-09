@@ -5,6 +5,7 @@ require('./css/gameinfobar.css');
 require('./css/globe.css');
 require('./css/questionresult.css');
 require('./css/startoverlay.css');
+require('./css/gamesetup.css');
 
 const GeoGame = require('./game/geogame');
 

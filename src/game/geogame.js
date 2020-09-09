@@ -1,12 +1,14 @@
 const d3 = require("d3");
 const GeoGlobe = require('../globe/geoglobe'); 
 const {QuestionSet} = require("./questions");
+const Settings = require('../game/settings');
 
 const StartOverlay = require('../ui/startoverlay');
 const GameInfoBar = require('../ui/gameinfobar');
 const FPSCounter = require('../ui/fpscounter');
 const QuestionResult = require('../ui/questionresult');
 const EndOverlay = require("../ui/endoverlay");
+const GameSetup = require("../ui/gamesetup");
 const About = require("../ui/about");
 
 class GeoGame {
@@ -27,7 +29,21 @@ class GeoGame {
       this.startGame();
     }, () => {
       this.startOverlay.hide();
+      this.setup.show();
+    }, () => {
+      this.startOverlay.hide();
       this.about.show();
+    });
+
+    this.setup = new GameSetup(this.overlay, () => {
+      this.setup.hide();
+      this.gameInfoBar.show();
+      this.globe.moveToGamePosition();
+      this.globe.enableInteraction();
+      this.startGame();
+    }, () => {
+      this.setup.hide();
+      this.startOverlay.show();
     });
 
     this.about = new About(this.overlay, () => {
@@ -70,7 +86,7 @@ class GeoGame {
 
     this.globe.moveToStartPosition();
     this.startOverlay.show();
-    this.globe.startAutoRotate();
+    // this.globe.startAutoRotate();
   }
 
   updateFPSCounter() {
@@ -83,8 +99,12 @@ class GeoGame {
     this.globe.clearStats();
   }
 
-  startGame(numQuestions = GeoGame.NUM_QUESTIONS_PER_GAME) {
-    this.questions = new QuestionSet(numQuestions);
+  startGame() {
+    let difficulty = Settings.getSettings().GAME_DIFFICULTY;
+    this.setDifficulty(difficulty);
+
+    let numQuestions = this.getNumQuestions();
+    this.questions = new QuestionSet(numQuestions, difficulty);
     this.numQuestions = numQuestions;
     this.currQuestion = 0;
     this.score = 0;
@@ -111,7 +131,7 @@ class GeoGame {
     this.globe.enableHighlightMode();
     this.updateOverlay(question.getCountryName(), this.currQuestion+1, this.score);
 
-    this.gameInfoBar.startTimer(GeoGame.DEFAULT_QUESTION_TIME, () => {
+    this.gameInfoBar.startTimer(this.getQuestionTime(), () => {
       this.globe.on('click', null);
       this.globe.disableHighlightMode();
       this.handleQuestionResponse(question);
@@ -187,12 +207,48 @@ class GeoGame {
     else
       this.gameInfoBar.setPrompt(GameInfoBar.QUESTION_PROMPT);
   }
+
+  setDifficulty(gameDifficulty) {
+    this.difficulty = gameDifficulty;
+  }
+
+  getNumQuestions() {
+    return GeoGame.getDifficultyMode(this.difficulty).NUM_QUESTIONS;
+  }
+
+
+  getQuestionTime() {
+    return GeoGame.getDifficultyMode(this.difficulty).QUESTION_TIME;
+  }
+
+  static getDifficultyMode(gameDifficulty) {
+    switch(gameDifficulty) {
+      case Settings.GAME_DIFFICULTY.EASY:
+        return GeoGame.EASY_MODE;
+      case Settings.GAME_DIFFICULTY.NORMAL:
+        return GeoGame.NORMAL_MODE;
+      case Settings.GAME_DIFFICULTY.HARD:
+        return GeoGame.HARD_MODE;
+    }
+  }
 }
 
-GeoGame.NUM_QUESTIONS_PER_GAME = 10;
 GeoGame.RESULTS_ROTATE_DELAY = 300;
-GeoGame.DEFAULT_QUESTION_TIME = 15 //sec
-
 GeoGame.FPS_UPDATE_INTERVAL = 500;
+
+GeoGame.EASY_MODE = {
+  QUESTION_TIME: 30,
+  NUM_QUESTIONS: 5
+};
+
+GeoGame.NORMAL_MODE = {
+  QUESTION_TIME: 15,
+  NUM_QUESTIONS: 10
+};
+
+GeoGame.HARD_MODE = {
+  QUESTION_TIME: 5,
+  NUM_QUESTIONS: 25
+};
 
 module.exports = GeoGame;

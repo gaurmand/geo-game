@@ -1,6 +1,7 @@
 const d3 = require("d3");
 
 const GeoData = require('./geodata');
+const Settings = require('../game/settings');
 
 class Question {
   constructor(country) {
@@ -238,9 +239,9 @@ Question.EXPONENTIAL_PROXIMITY_SCALE_FACTOR = 0.1;
 
 
 class QuestionSet {
-  constructor(numQuestions, difficultyMode = QuestionSet.NORMAL_MODE) {
+  constructor(numQuestions, gameDifficulty) {
     this.numQuestions = numQuestions;
-    this.questionCountries = QuestionSet.generateQuestions(numQuestions, difficultyMode);
+    this.questionCountries = QuestionSet.generateQuestions(numQuestions, QuestionSet.getDifficultyDist(gameDifficulty));
     this.questions = this.questionCountries.map(country => new Question(country));
   }
 
@@ -270,10 +271,10 @@ class QuestionSet {
     this.questions.forEach((question, i, arr) => cb(question, i, arr));
   }
 
-  static generateQuestions(numQuestions, difficultyMode) {
+  static generateQuestions(numQuestions, difficultyDist) {
     let questionCountries = [];
     while(questionCountries.length < numQuestions) {
-      let countryDifficulty = QuestionSet.chooseQuestionDifficulty(difficultyMode);
+      let countryDifficulty = QuestionSet.chooseQuestionDifficulty(difficultyDist);
       let country = GeoData.getRandomCountry(countryDifficulty);
       if(questionCountries.findIndex(qCountry => qCountry.properties.NE_ID === country.properties.NE_ID) === -1)
         questionCountries.push(country);
@@ -290,24 +291,35 @@ class QuestionSet {
     else 
       return GeoData.COUNTRY_DIFFICULTY.HARD;
   }
+
+  static getDifficultyDist(gameDifficulty) {
+    switch(gameDifficulty) {
+      case Settings.GAME_DIFFICULTY.EASY:
+        return QuestionSet.EASY_MODE;
+      case Settings.GAME_DIFFICULTY.NORMAL:
+        return QuestionSet.NORMAL_MODE;
+      case Settings.GAME_DIFFICULTY.HARD:
+        return QuestionSet.HARD_MODE;
+    }
+  }
 }
 
 QuestionSet.EASY_MODE = {
-  EASY: 0.6,
-  NORMAL: 0.3,
-  HARD: 0.1
+  EASY: 1,
+  NORMAL: 0,
+  HARD: 0
 };
 
 QuestionSet.NORMAL_MODE = {
-  EASY: 0.3,
-  NORMAL: 0.5,
-  HARD: 0.2
+  EASY: 0,
+  NORMAL: 1,
+  HARD: 0
 };
 
 QuestionSet.HARD_MODE = {
-  EASY: 0.2,
-  NORMAL: 0.4,
-  HARD: 0.4
+  EASY: 0,
+  NORMAL: 0,
+  HARD: 1
 };
 
 module.exports = {

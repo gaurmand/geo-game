@@ -1,5 +1,5 @@
 class StartOverlay {
-  constructor(overlay, startCb, aboutCb) {
+  constructor(overlay, startCb, setupCb, aboutCb) {
     this.overlay = overlay;
 
     //start screen
@@ -23,6 +23,7 @@ class StartOverlay {
     this.startNode.append('button')
       .text(StartOverlay.SETUP_BUTTON_TEXT)
       .classed('set-up-game start-button', true)
+      .on('mouseup', setupCb)
 
     this.startNode.append('button')
       .text(StartOverlay.OPTIONS_BUTTON_TEXT)
