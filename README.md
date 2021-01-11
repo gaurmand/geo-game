@@ -17,6 +17,7 @@ Tech/Resources I used to help make this project
 * [D3](https://github.com/d3/d3) - Used to render and interact with the globe.
 * [webpack](https://github.com/webpack/webpack) - Used to bundle js code and assets.
 * [Natural Earth](https://www.naturalearthdata.com/downloads/) - Source of geographic data.
+* [Mapshaper](https://github.com/mbloch/mapshaper) - Used to modify/convert geographic data.
 
 ### Building and Testing
 -----------------------
