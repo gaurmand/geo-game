@@ -2,10 +2,14 @@
 
 [A very cool geography game I made for fun.](http://geo.gaurmand.com)
 
+
   - Answer geography questions by clicking on the globe to make your guess
   - The closer your guess is to the correct answer, the more points you get
   - Click and drag to rotate the globe
   - Use the mouse wheel zoom the globe in and out
+
+  ![ScreenShot1](/screenshots/geo1.png)
+  ![ScreenShot2](/screenshots/geo2.png)
 
 ### Tech
 --------
