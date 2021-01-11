@@ -8,8 +8,7 @@
   - Click and drag to rotate the globe
   - Use the mouse wheel zoom the globe in and out
 
-  ![ScreenShot1](/screenshots/geo1.png)
-  ![ScreenShot2](/screenshots/geo2.png)
+  ![gif](/screenshots/geo2.gif)
 
 ### Tech
 --------
