@@ -150,13 +150,14 @@ class GeoGame {
 
     this.globe.highlightCountry(question.getQuestionCountry(), 'green');
 
-    if(question.isCorrect()) {
-      //correct country clicked
-      this.score += questionScore.total;
-      this.updateOverlay(null, null, this.score);
-    } else if(question.getAnswerCountry())
-      //wrong country clicked
+    //update score
+    this.score += questionScore.total;
+    this.updateOverlay(null, null, this.score);
+
+    //wrong country clicked
+    if(question.getAnswerCountry()) {
       this.globe.highlightCountry(question.getAnswerCountry(), 'red');
+    }
 
     if(question.getClosestPoint())
       this.globe.addLine(lonlat, question.getClosestPoint())

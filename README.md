@@ -32,7 +32,6 @@ $ npm run test
 
 ### Todo
 ---------
- - Fix score bug
  - Improve difficulty settings
  - Improve performance/user experience
  - Add city guessing mode
